@@ -109,26 +109,26 @@ class LoginView extends GetView<AuthController> {
     return Column(
       children: [
         TextField(
-          controller: controller.nameController,
+          controller: controller.forms.nameController,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.person_outline), labelText: 'Owner / Contact Name'),
         ),
         const SizedBox(height: 12),
         TextField(
-          controller: controller.firmNameController,
+          controller: controller.forms.firmNameController,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.business_outlined), labelText: 'Firm / Shop Name'),
         ),
         const SizedBox(height: 12),
         TextField(
-          controller: controller.mobileController,
+          controller: controller.forms.mobileController,
           keyboardType: TextInputType.phone,
           textInputAction: TextInputAction.next,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.phone_android_rounded), labelText: 'Mobile Number'),
         ),
         const SizedBox(height: 12),
         TextField(
-          controller: controller.gstController,
+          controller: controller.forms.gstController,
           textInputAction: TextInputAction.done,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.receipt_long_outlined), labelText: 'GST Number (optional)'),
         ),
@@ -145,13 +145,13 @@ class LoginView extends GetView<AuthController> {
     return Column(
       children: [
         TextField(
-          controller: controller.emailController,
+          controller: controller.forms.emailController,
           keyboardType: TextInputType.emailAddress,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.email_outlined), labelText: 'Email Address'),
         ),
         const SizedBox(height: 12),
         TextField(
-          controller: controller.passwordController,
+          controller: controller.forms.passwordController,
           obscureText: true,
           decoration: const InputDecoration(prefixIcon: Icon(Icons.lock_outline), labelText: 'Password'),
         ),

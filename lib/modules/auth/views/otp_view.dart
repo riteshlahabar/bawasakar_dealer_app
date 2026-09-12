@@ -26,7 +26,7 @@ class OtpView extends GetView<AuthController> {
           Obx(() => Text('OTP sent to ${controller.mobile.value}. Dealer product access starts only after admin approval.', style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.35))),
           const SizedBox(height: 22),
           TextField(
-            controller: controller.otpController,
+            controller: controller.forms.otpController,
             keyboardType: TextInputType.number,
             maxLength: 6,
             decoration: const InputDecoration(prefixIcon: Icon(Icons.password_rounded), labelText: '6 Digit OTP', counterText: ''),

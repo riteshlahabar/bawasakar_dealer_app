@@ -1,41 +1,26 @@
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../../app/data/services/auth_storage.dart';
-import '../../../app/data/services/dealer_api_service.dart';
 import '../../../app/routes/app_routes.dart';
+import '../services/email_auth_service.dart';
+import '../services/otp_auth_service.dart';
+import '../utils/auth_form_fields.dart';
+import '../utils/auth_input_utils.dart';
 
 class AuthController extends GetxController {
   AuthController(
-    this._api,
-    this._storage,
+    this._otpAuth,
+    this._emailAuth,
   );
 
-  final DealerApiService _api;
-  final AuthStorage _storage;
+  final OtpAuthService _otpAuth;
+  final EmailAuthService _emailAuth;
+
+  /// Every TextEditingController used across the login/OTP/signup forms.
+  final forms = AuthFormFields();
 
   // 0 = Mobile OTP
   // 1 = Email / Password
   final loginMode = 0.obs;
-
-  // Login / OTP registration controllers
-  final mobileController = TextEditingController();
-  final nameController = TextEditingController();
-  final firmNameController = TextEditingController();
-  final gstController = TextEditingController();
-
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-
-  // Do not prefill production OTP.
-  final otpController = TextEditingController();
-
-  // Signup controllers
-  final signupName = TextEditingController();
-  final signupFirmName = TextEditingController();
-  final signupMobile = TextEditingController();
-  final signupEmail = TextEditingController();
-  final signupGst = TextEditingController();
 
   final isLoading = false.obs;
 
@@ -61,48 +46,24 @@ class AuthController extends GetxController {
       return;
     }
 
-    final enteredMobile =
-        mobileController.text.trim();
+    final enteredMobile = forms.mobileController.text.trim();
+    final dealerName = forms.nameController.text.trim();
+    final firmName = forms.firmNameController.text.trim();
+    final gstNumber = forms.gstController.text.trim();
 
-    final dealerName =
-        nameController.text.trim();
+    final error = AuthInputUtils.validateOtpRequest(
+      dealerName: dealerName,
+      firmName: firmName,
+      mobile: enteredMobile,
+    );
 
-    final firmName =
-        firmNameController.text.trim();
-
-    final gstNumber =
-        gstController.text.trim();
-
-    if (dealerName.length < 3) {
-      Get.snackbar(
-        'Dealer Name Required',
-        'Enter dealer owner/contact name.',
-      );
+    if (error != null) {
+      Get.snackbar(error.title, error.message);
       return;
     }
 
-    if (firmName.length < 2) {
-      Get.snackbar(
-        'Firm Name Required',
-        'Enter shop/firm name.',
-      );
-      return;
-    }
-
-    if (!_isValidMobile(enteredMobile)) {
-      Get.snackbar(
-        'Mobile Required',
-        'Enter a valid 10 digit mobile number.',
-      );
-      return;
-    }
-
-    isLoading.value = true;
-
-    try {
-      await _api.requestOtp(
-        enteredMobile,
-      );
+    await _guarded('OTP Failed', () async {
+      await _otpAuth.requestOtp(enteredMobile);
 
       // Save data required by dealer OTP verification.
       mobile.value = enteredMobile;
@@ -111,19 +72,10 @@ class AuthController extends GetxController {
       gstForOtp.value = gstNumber;
 
       // Always start with empty OTP.
-      otpController.clear();
+      forms.otpController.clear();
 
-      Get.toNamed(
-        AppRoutes.otp,
-      );
-    } catch (error) {
-      Get.snackbar(
-        'OTP Failed',
-        _errorMessage(error),
-      );
-    } finally {
-      isLoading.value = false;
-    }
+      Get.toNamed(AppRoutes.otp);
+    });
   }
 
   /// Verify OTP and login/register dealer.
@@ -138,98 +90,53 @@ class AuthController extends GetxController {
       return;
     }
 
-    final enteredOtp =
-        otpController.text.trim();
+    final enteredOtp = forms.otpController.text.trim();
 
     if (mobile.value.trim().isEmpty) {
-      Get.snackbar(
-        'Mobile Missing',
-        'Please request OTP again.',
-      );
-
-      Get.offAllNamed(
-        AppRoutes.login,
-      );
-
+      Get.snackbar('Mobile Missing', 'Please request OTP again.');
+      Get.offAllNamed(AppRoutes.login);
       return;
     }
 
-    if (enteredOtp.length != 6) {
-      Get.snackbar(
-        'OTP Required',
-        'Enter the 6 digit OTP.',
-      );
+    final error = AuthInputUtils.validateOtpCode(enteredOtp);
+
+    if (error != null) {
+      Get.snackbar(error.title, error.message);
       return;
     }
 
-    if (!GetUtils.isNumericOnly(
-      enteredOtp,
-    )) {
-      Get.snackbar(
-        'Invalid OTP',
-        'OTP must contain only numbers.',
-      );
-      return;
-    }
+    await _guarded('OTP Verification Failed', () async {
+      final dealerName = dealerNameForOtp.value.trim();
 
-    isLoading.value = true;
-
-    try {
-      final response =
-          await _api.verifyOtp(
+      final loggedIn = await _otpAuth.verifyOtp(
         mobile: mobile.value.trim(),
         otp: enteredOtp,
-        name:
-            dealerNameForOtp.value.trim(),
-        firmName:
-            firmNameForOtp.value.trim(),
-        gstNumber:
-            gstForOtp.value.trim(),
-      );
-
-      final loggedIn =
-          await _saveFromResponse(
-        response,
-        fallbackMobile:
-            mobile.value.trim(),
+        name: dealerName,
+        firmName: firmNameForOtp.value.trim(),
+        gstNumber: gstForOtp.value.trim(),
+        fallbackName: dealerName.isNotEmpty ? dealerName : 'Dealer',
       );
 
       if (loggedIn) {
-        otpController.clear();
-
-        Get.offAllNamed(
-          AppRoutes.main,
-        );
-
+        forms.otpController.clear();
+        Get.offAllNamed(AppRoutes.main);
         return;
       }
 
-      // Registration completed successfully,
-      // but backend did not return a token.
-      // For a new dealer this means admin approval
-      // is still required.
-      otpController.clear();
-
-      Get.offAllNamed(
-        AppRoutes.login,
-      );
+      // Registration completed successfully, but backend did not return a
+      // token. For a new dealer this means admin approval is still
+      // required.
+      forms.otpController.clear();
+      Get.offAllNamed(AppRoutes.login);
 
       Get.snackbar(
         'Approval Pending',
         'Dealer registration completed successfully. '
             'Admin approval is required before dealer product access.',
         snackPosition: SnackPosition.BOTTOM,
-        duration:
-            const Duration(seconds: 5),
+        duration: const Duration(seconds: 5),
       );
-    } catch (error) {
-      Get.snackbar(
-        'OTP Verification Failed',
-        _errorMessage(error),
-      );
-    } finally {
-      isLoading.value = false;
-    }
+    });
   }
 
   /// Resend OTP for the currently entered dealer mobile.
@@ -238,10 +145,9 @@ class AuthController extends GetxController {
       return;
     }
 
-    final mobileNo =
-        mobile.value.trim();
+    final mobileNo = mobile.value.trim();
 
-    if (!_isValidMobile(mobileNo)) {
+    if (!AuthInputUtils.isValidMobile(mobileNo)) {
       Get.snackbar(
         'Mobile Missing',
         'Please return to login and enter your mobile number again.',
@@ -249,27 +155,11 @@ class AuthController extends GetxController {
       return;
     }
 
-    isLoading.value = true;
-
-    try {
-      await _api.requestOtp(
-        mobileNo,
-      );
-
-      otpController.clear();
-
-      Get.snackbar(
-        'OTP Sent',
-        'A new OTP has been requested.',
-      );
-    } catch (error) {
-      Get.snackbar(
-        'OTP Failed',
-        _errorMessage(error),
-      );
-    } finally {
-      isLoading.value = false;
-    }
+    await _guarded('OTP Failed', () async {
+      await _otpAuth.requestOtp(mobileNo);
+      forms.otpController.clear();
+      Get.snackbar('OTP Sent', 'A new OTP has been requested.');
+    });
   }
 
   /// Dealer email/password login.
@@ -281,58 +171,31 @@ class AuthController extends GetxController {
       return;
     }
 
-    final email =
-        emailController.text.trim();
+    final email = forms.emailController.text.trim();
+    final password = forms.passwordController.text;
 
-    final password =
-        passwordController.text;
+    final error = AuthInputUtils.validateEmailLogin(
+      email: email,
+      password: password,
+    );
 
-    if (!GetUtils.isEmail(email)) {
-      Get.snackbar(
-        'Email Required',
-        'Enter a valid email address.',
-      );
+    if (error != null) {
+      Get.snackbar(error.title, error.message);
       return;
     }
 
-    if (password.trim().isEmpty) {
-      Get.snackbar(
-        'Password Required',
-        'Enter your password.',
-      );
-      return;
-    }
+    await _guarded('Login Failed', () async {
+      final dealerName = dealerNameForOtp.value.trim();
 
-    if (password.length < 6) {
-      Get.snackbar(
-        'Password Required',
-        'Password must be at least 6 characters.',
-      );
-      return;
-    }
-
-    isLoading.value = true;
-
-    try {
-      final response =
-          await _api.emailLogin(
+      final loggedIn = await _emailAuth.login(
         email: email,
         password: password,
-      );
-
-      final loggedIn =
-          await _saveFromResponse(
-        response,
-        fallbackEmail: email,
+        fallbackName: dealerName.isNotEmpty ? dealerName : 'Dealer',
       );
 
       if (loggedIn) {
-        passwordController.clear();
-
-        Get.offAllNamed(
-          AppRoutes.main,
-        );
-
+        forms.passwordController.clear();
+        Get.offAllNamed(AppRoutes.main);
         return;
       }
 
@@ -341,14 +204,7 @@ class AuthController extends GetxController {
         'Your dealer account is waiting for admin approval.',
         snackPosition: SnackPosition.BOTTOM,
       );
-    } catch (error) {
-      Get.snackbar(
-        'Login Failed',
-        _errorMessage(error),
-      );
-    } finally {
-      isLoading.value = false;
-    }
+    });
   }
 
   /// Dealer signup.
@@ -359,211 +215,41 @@ class AuthController extends GetxController {
       return;
     }
 
-    final name =
-        signupName.text.trim();
+    final name = forms.signupName.text.trim();
+    final firm = forms.signupFirmName.text.trim();
+    final mobileNo = forms.signupMobile.text.trim();
+    final email = forms.signupEmail.text.trim();
+    final gst = forms.signupGst.text.trim();
 
-    final firm =
-        signupFirmName.text.trim();
+    final error = AuthInputUtils.validateSignup(
+      name: name,
+      firm: firm,
+      mobile: mobileNo,
+      email: email,
+    );
 
-    final mobileNo =
-        signupMobile.text.trim();
-
-    final email =
-        signupEmail.text.trim();
-
-    final gst =
-        signupGst.text.trim();
-
-    if (name.length < 3) {
-      Get.snackbar(
-        'Name Required',
-        'Enter dealer owner/contact name.',
-      );
-      return;
-    }
-
-    if (firm.length < 2) {
-      Get.snackbar(
-        'Firm Name Required',
-        'Enter shop/firm name.',
-      );
-      return;
-    }
-
-    if (!_isValidMobile(mobileNo)) {
-      Get.snackbar(
-        'Mobile Required',
-        'Enter a valid 10 digit mobile number.',
-      );
-      return;
-    }
-
-    if (email.isNotEmpty &&
-        !GetUtils.isEmail(email)) {
-      Get.snackbar(
-        'Invalid Email',
-        'Enter a valid email address or leave it blank.',
-      );
+    if (error != null) {
+      Get.snackbar(error.title, error.message);
       return;
     }
 
     // Fill the normal OTP registration fields.
-    mobileController.text = mobileNo;
-    nameController.text = name;
-    firmNameController.text = firm;
-    gstController.text = gst;
+    forms.mobileController.text = mobileNo;
+    forms.nameController.text = name;
+    forms.firmNameController.text = firm;
+    forms.gstController.text = gst;
 
     // Store optional email locally for later use if required.
     if (email.isNotEmpty) {
-      emailController.text = email;
+      forms.emailController.text = email;
     }
 
     await requestOtp();
   }
 
-  /// Reads Laravel login / OTP response.
-  ///
-  /// Returns:
-  /// true  = valid token received
-  /// false = request succeeded but no token was returned,
-  ///         usually because dealer approval is pending.
-  Future<bool> _saveFromResponse(
-    Map<String, dynamic> response, {
-    String fallbackMobile = '',
-    String fallbackEmail = '',
-  }) async {
-    final rawData =
-        response['data'] ?? response;
-
-    if (rawData is! Map) {
-      throw const FormatException(
-        'Invalid response received from server.',
-      );
-    }
-
-    final data =
-        Map<String, dynamic>.from(
-      rawData,
-    );
-
-    final rawUser =
-        data['user'];
-
-    final user = rawUser is Map
-        ? Map<String, dynamic>.from(
-            rawUser,
-          )
-        : <String, dynamic>{};
-
-    final token =
-        (data['token'] ??
-                data['access_token'])
-            ?.toString()
-            .trim() ??
-        '';
-
-    // No token is valid for a newly registered
-    // dealer waiting for admin approval.
-    if (token.isEmpty) {
-      return false;
-    }
-
-    final serverName =
-        user['name']
-                ?.toString()
-                .trim() ??
-            '';
-
-    final serverMobile =
-        user['mobile']
-                ?.toString()
-                .trim() ??
-            '';
-
-    final serverEmail =
-        user['email']
-                ?.toString()
-                .trim() ??
-            '';
-
-    final name = serverName.isNotEmpty
-        ? serverName
-        : dealerNameForOtp.value
-                .trim()
-                .isNotEmpty
-            ? dealerNameForOtp.value
-                .trim()
-            : 'Dealer';
-
-    final savedMobile =
-        serverMobile.isNotEmpty
-            ? serverMobile
-            : fallbackMobile.trim();
-
-    final savedEmail =
-        serverEmail.isNotEmpty
-            ? serverEmail
-            : fallbackEmail.trim();
-
-    await _storage.saveSession(
-      token: token,
-      name: name,
-      mobile: savedMobile,
-      email: savedEmail,
-    );
-
-    return true;
-  }
-
-  bool _isValidMobile(
-    String value,
-  ) {
-    final mobile =
-        value.replaceAll(
-      RegExp(r'\s+'),
-      '',
-    );
-
-    return RegExp(
-      r'^[0-9]{10}$',
-    ).hasMatch(mobile);
-  }
-
-  String _errorMessage(
-    Object error,
-  ) {
-    var message =
-        error.toString().trim();
-
-    if (message.startsWith(
-      'Exception: ',
-    )) {
-      message = message.substring(
-        'Exception: '.length,
-      );
-    }
-
-    if (message.isEmpty) {
-      return 'Something went wrong. Please try again.';
-    }
-
-    return message;
-  }
-
   /// Clear registration-related temporary fields.
   void clearRegistrationData() {
-    nameController.clear();
-    firmNameController.clear();
-    gstController.clear();
-    mobileController.clear();
-
-    signupName.clear();
-    signupFirmName.clear();
-    signupMobile.clear();
-    signupEmail.clear();
-    signupGst.clear();
-
-    otpController.clear();
+    forms.clearRegistration();
 
     mobile.value = '';
     dealerNameForOtp.value = '';
@@ -571,24 +257,26 @@ class AuthController extends GetxController {
     gstForOtp.value = '';
   }
 
+  /// Runs [action] while `isLoading` is true, reporting any error as a
+  /// snackbar titled [errorTitle].
+  Future<void> _guarded(
+    String errorTitle,
+    Future<void> Function() action,
+  ) async {
+    isLoading.value = true;
+
+    try {
+      await action();
+    } catch (error) {
+      Get.snackbar(errorTitle, AuthInputUtils.errorMessage(error));
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   @override
   void onClose() {
-    mobileController.dispose();
-    nameController.dispose();
-    firmNameController.dispose();
-    gstController.dispose();
-
-    emailController.dispose();
-    passwordController.dispose();
-
-    otpController.dispose();
-
-    signupName.dispose();
-    signupFirmName.dispose();
-    signupMobile.dispose();
-    signupEmail.dispose();
-    signupGst.dispose();
-
+    forms.dispose();
     super.onClose();
   }
 }
