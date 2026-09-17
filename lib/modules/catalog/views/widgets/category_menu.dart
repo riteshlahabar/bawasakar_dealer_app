@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/data/models/category_model.dart';
 import '../../../../app/theme/app_colors.dart';
 import 'category_menu_tile.dart';
+import '../../../../app/localization/t.dart';
 
 /// Vertical category rail on the left of the catalog tab, with a leading
 /// "All" entry.
@@ -39,7 +40,7 @@ class CategoryMenu extends StatelessWidget {
           final active = selectedCategoryId == id;
 
           return CategoryMenuTile(
-            title: isAll ? 'All' : category!.name,
+            title: isAll ? t('orders.all') : category!.name,
             active: active,
             category: category,
             onTap: () => onCategorySelected(id),

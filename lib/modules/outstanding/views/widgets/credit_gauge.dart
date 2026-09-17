@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../app/data/models/credit_model.dart';
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/localization/t.dart';
 
 /// Credit limit, used balance and remaining headroom as a single bar.
 ///
@@ -25,8 +26,8 @@ class CreditGauge extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Outstanding',
+                Text(
+                  t('home.outstanding'),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
@@ -44,8 +45,8 @@ class CreditGauge extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                const Text(
-                  'Credit limit',
+                Text(
+                  t('common.credit_limit'),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
                 const SizedBox(height: 2),
@@ -81,8 +82,8 @@ class CreditGauge extends StatelessWidget {
             Expanded(
               child: Text(
                 credit.isOverLimit
-                    ? 'You are over your credit limit. Clear dues to place new orders.'
-                    : '₹${credit.availableCredit.toStringAsFixed(2)} still available',
+                    ? t('outstanding.over_limit')
+                    : t('outstanding.still_available', {'amount': '₹${credit.availableCredit.toStringAsFixed(2)}'}),
                 style: TextStyle(
                   color: barColor,
                   fontSize: 12,

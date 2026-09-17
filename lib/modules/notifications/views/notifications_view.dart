@@ -6,6 +6,7 @@ import '../../../app/widgets/app_card.dart';
 import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/notifications_controller.dart';
+import '../../../app/localization/t.dart';
 
 class NotificationsView extends GetView<NotificationsController> {
   const NotificationsView({super.key});
@@ -14,24 +15,26 @@ class NotificationsView extends GetView<NotificationsController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(t('notifications.title')),
         actions: [
           Obx(() => controller.unreadCount.value == 0
               ? const SizedBox.shrink()
               : TextButton(
                   onPressed: controller.markAllRead,
-                  child: const Text('Mark all read'),
+                  // White so it stays visible on the green app bar.
+                  style: TextButton.styleFrom(foregroundColor: Colors.white),
+                  child: Text(t('notifications.mark_all_read')),
                 )),
         ],
       ),
       body: Obx(() {
         if (controller.isLoading.value && controller.items.isEmpty) {
-          return const LoadingView(message: 'Loading notifications...');
+          return LoadingView(message: t('common.loading'));
         }
         if (controller.isEmpty) {
-          return const EmptyState(
-            title: 'No notifications',
-            message: 'Order approvals, dispatches and notices show up here.',
+          return EmptyState(
+            title: t('notifications.empty_title'),
+            message: t('notifications.empty_message'),
             icon: Icons.notifications_none,
           );
         }

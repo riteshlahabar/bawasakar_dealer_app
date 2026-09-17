@@ -5,7 +5,43 @@ class ProductModelMapper {
   const ProductModelMapper._();
 
   static ProductModel fromJson(Map<String, dynamic> json) {
+    final unitPrice = _firstPrice(json, const [
+      'dealer_price',
+      'price',
+      'sale_price',
+      'selling_price',
+      'customer_price',
+    ]);
+    final unitMrp = _firstPrice(json, const [
+      'mrp',
+      'old_price',
+      'compare_price',
+      'customer_price',
+    ]);
+
+    final variant = _mainVariant(json);
+    final unitsPerCase = variant == null ? 1 : _asDouble(variant['units_per_case']).round().clamp(1, 100000).toInt();
+    final variantUnitPrice = variant == null ? 0.0 : _asDouble(variant['dealer_price']);
+    final variantMrp = variant == null ? 0.0 : _asDouble(variant['mrp']);
+    final serverCasePrice = variant == null ? 0.0 : _asDouble(variant['dealer_case_price']);
+
     return ProductModel(
+      unitsPerCase: unitsPerCase,
+
+      casePrice: serverCasePrice > 0
+          ? serverCasePrice
+          : (variantUnitPrice > 0 ? variantUnitPrice : unitPrice) * unitsPerCase,
+
+      caseMrp: (variantMrp > 0 ? variantMrp : unitMrp) * unitsPerCase,
+
+      variantName: (variant?['name'] ?? variant?['display_name'] ?? variant?['value'])?.toString() ?? '',
+
+      mainVariantId: variant == null ? 0 : _asInt(variant['id']),
+
+      availableStock: variant == null || variant['available_stock'] == null ? null : _asDouble(variant['available_stock']),
+
+      source: json,
+
       id: _asInt(json['id']),
 
       name:
@@ -15,20 +51,9 @@ class ProductModelMapper {
 
       // IMPORTANT:
       // Dealer price must always have first priority.
-      price: _firstPrice(json, const [
-        'dealer_price',
-        'price',
-        'sale_price',
-        'selling_price',
-        'customer_price',
-      ]),
+      price: unitPrice,
 
-      mrp: _firstPrice(json, const [
-        'mrp',
-        'old_price',
-        'compare_price',
-        'customer_price',
-      ]),
+      mrp: unitMrp,
 
       gstPercent: _asDouble(json['gst_percent']),
 
@@ -66,6 +91,38 @@ class ProductModelMapper {
 
       isNewArrival: _asBool(json['is_new_arrival']),
     );
+  }
+
+  /// The product's main variant: `main_variant_id`, else the default
+  /// variant, else the first one. Null when the payload has no variants.
+  static Map<String, dynamic>? _mainVariant(Map<String, dynamic> json) {
+    final variants = json['variants'];
+
+    if (variants is! List) {
+      return null;
+    }
+
+    final list = variants.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList();
+
+    if (list.isEmpty) {
+      return null;
+    }
+
+    final mainId = _asInt(json['main_variant_id']);
+
+    for (final variant in list) {
+      if (mainId > 0 && _asInt(variant['id']) == mainId) {
+        return variant;
+      }
+    }
+
+    for (final variant in list) {
+      if (_asBool(variant['is_default'])) {
+        return variant;
+      }
+    }
+
+    return list.first;
   }
 
   static String? _image(Map<String, dynamic> json) {

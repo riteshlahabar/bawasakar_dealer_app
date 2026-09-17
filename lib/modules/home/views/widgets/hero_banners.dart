@@ -15,33 +15,41 @@ class HeroBanners extends StatelessWidget {
   final List<HomepageItemModel> banners;
   final VoidCallback onShopNow;
 
+  /// Width / height of the admin hero banner images (e.g. 2176 x 723).
+  static const _bannerAspectRatio = 3.0;
+
+  static const _sidePadding = 12.0;
+
   @override
   Widget build(BuildContext context) {
     if (banners.isEmpty) {
       return FallbackHeroBanner(onShopNow: onShopNow);
     }
 
-    return SizedBox(
-      height: 188,
-      child: PageView.builder(
-        padEnds: false,
-        controller: PageController(viewportFraction: .92),
-        itemCount: banners.length,
-        itemBuilder: (_, index) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: index == 0 ? 16 : 8,
-              right: 8,
-            ),
-            child: BannerCard(
-              banner: banners[index],
-              height: 176,
-              large: true,
-              onShopNow: onShopNow,
-            ),
-          );
-        },
-      ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Full screen width, and a height that follows the image's own shape
+        // so the whole banner is visible instead of being cropped.
+        final cardHeight = (constraints.maxWidth - _sidePadding * 2) / _bannerAspectRatio;
+
+        return SizedBox(
+          height: cardHeight,
+          child: PageView.builder(
+            itemCount: banners.length,
+            itemBuilder: (_, index) {
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: _sidePadding),
+                child: BannerCard(
+                  banner: banners[index],
+                  height: cardHeight,
+                  large: true,
+                  onShopNow: onShopNow,
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }

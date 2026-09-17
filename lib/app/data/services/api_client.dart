@@ -5,7 +5,9 @@ import 'package:get/get.dart';
 import '../../config/api_config.dart';
 import '../../core/error/api_exception.dart';
 import '../../core/security/session_expiry_handler.dart';
+import '../../localization/locale_storage.dart';
 import 'auth_storage.dart';
+import '../../localization/t.dart';
 
 export '../../core/error/api_exception.dart' show ApiException;
 
@@ -30,8 +32,16 @@ class ApiClient extends GetConnect {
     httpClient.maxAuthRetries = 0;
     httpClient.addRequestModifier<dynamic>((request) {
       request.headers['Accept'] = 'application/json';
-      request.headers['Content-Type'] = 'application/json';
+      // Multipart uploads already carry their content type (with the boundary).
+      final contentType = request.headers['content-type'] ?? request.headers['Content-Type'] ?? '';
+      if (!contentType.contains('multipart/form-data')) {
+        request.headers['Content-Type'] = 'application/json';
+      }
       request.headers['X-Requested-With'] = 'XMLHttpRequest';
+      // The server translates product and category names from this.
+      if (Get.isRegistered<LocaleStorage>()) {
+        request.headers['Accept-Language'] = Get.find<LocaleStorage>().current;
+      }
       final token = _storage.token;
       if (token != null && token.isNotEmpty) {
         request.headers['Authorization'] = 'Bearer $token';
@@ -53,6 +63,11 @@ class ApiClient extends GetConnect {
     Map<String, dynamic> body,
   ) async {
     return _handle(await post(endpoint, body));
+  }
+
+  /// Multipart POST, for file uploads.
+  Future<Map<String, dynamic>> postForm(String endpoint, FormData form) async {
+    return _handle(await post(endpoint, form));
   }
 
   Future<Map<String, dynamic>> putJson(
@@ -97,14 +112,14 @@ class ApiClient extends GetConnect {
     if (body is Map<String, dynamic>) {
       final message = body['message']?.toString() ??
           body['error']?.toString() ??
-          'Request failed';
+          t('common.request_failed');
       throw ApiException(message, status, body);
     }
 
     throw ApiException(
       response.statusText?.isNotEmpty == true
           ? response.statusText!
-          : 'Network request failed',
+          : t('common.network_failed'),
       status,
       const {},
     );

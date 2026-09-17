@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'app_colors.dart';
@@ -23,13 +24,17 @@ class AppTheme {
         displayColor: AppColors.textPrimary,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.scaffold,
-        foregroundColor: AppColors.textPrimary,
-        surfaceTintColor: AppColors.scaffold,
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        surfaceTintColor: AppColors.primary,
         elevation: 0,
         centerTitle: false,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
+        // Light status bar icons on the green bar.
+        systemOverlayStyle: SystemUiOverlayStyle.light,
         titleTextStyle: GoogleFonts.poppins(
-          color: AppColors.textPrimary,
+          color: Colors.white,
           fontSize: 17,
           fontWeight: FontWeight.w700,
         ),

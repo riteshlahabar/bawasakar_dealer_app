@@ -29,6 +29,7 @@ class ApiConfig {
   // --- Auth -----------------------------------------------------------------
   static const String requestOtp = '/auth/otp/request';
   static const String verifyDealerOtp = '/auth/dealer/otp/verify';
+  static const String registerDealer = '/auth/dealer/register';
   static const String emailLogin = '/auth/dealer/login';
   static const String logout = '/auth/logout';
 
@@ -36,15 +37,18 @@ class ApiConfig {
   static const String categories = '/catalog/categories';
   static const String products = '/catalog/products';
   static const String homepage = '/catalog/homepage';
-  static const String translations = '/translations';
+  static const String appTranslations = '/app-translations';
+  static const String appTranslationsRegister = '/app-translations/register';
 
   // --- Account --------------------------------------------------------------
   static const String dealerDashboard = '/dealer/dashboard';
   static const String dealerProfile = '/dealer/profile';
+  static const String profilePhoto = '/dealer/profile/photo';
   static const String dealerStatements = '/dealer/statements';
   static const String dealerAddresses = '/dealer/addresses';
   static const String dealerSupport = '/dealer/support';
   static const String dealerOrders = '/dealer/orders';
+  static const String changePassword = '/dealer/change-password';
 
   static String dealerOrder(int id) => '/dealer/orders/$id';
   static String dealerAddress(int id) => '/dealer/addresses/$id';
@@ -59,6 +63,7 @@ class ApiConfig {
   static String orderTracking(int orderId) => '/dealer/orders/$orderId/tracking';
   static const String invoices = '/dealer/invoices';
   static String invoice(int id) => '/dealer/invoices/$id';
+  static String invoicePdf(int id) => '/dealer/invoices/$id/pdf';
   static const String returns = '/dealer/returns';
   static String returnRequest(int id) => '/dealer/returns/$id';
 

@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../../app/data/models/product_model.dart';
 import '../../../app/data/services/cart_service.dart';
+import '../../../app/localization/t.dart';
 
 class ProductDetailController extends GetxController {
   ProductDetailController(this._cart);
@@ -20,6 +21,6 @@ class ProductDetailController extends GetxController {
     for (var i = 0; i < quantity.value; i++) {
       _cart.add(product);
     }
-    Get.snackbar('Added', '${product.name} added to cart', snackPosition: SnackPosition.BOTTOM);
+    Get.snackbar(t('common.added'), t('common.added_to_cart', {'name': product.name}), snackPosition: SnackPosition.BOTTOM);
   }
 }

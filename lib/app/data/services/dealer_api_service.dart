@@ -1,4 +1,9 @@
+import 'dart:io';
+
+import 'package:get/get.dart' show FormData, MultipartFile;
+
 import '../../config/api_config.dart';
+import '../models/address_model.dart';
 import 'api_client.dart';
 
 class DealerApiService {
@@ -13,16 +18,25 @@ class DealerApiService {
     });
   }
 
-  Future<Map<String, dynamic>> verifyOtp({
-    required String mobile,
-    required String otp,
-    required String name,
-    required String firmName,
-    String? gstNumber,
-  }) {
+  /// Returns a login/approval response for a registered dealer, or
+  /// `registration_required` + `registration_token` for a new number.
+  Future<Map<String, dynamic>> verifyOtp({required String mobile, required String otp}) {
     return _client.postJson(ApiConfig.verifyDealerOtp, {
       'mobile': mobile,
       'otp': otp,
+    });
+  }
+
+  Future<Map<String, dynamic>> registerDealer({
+    required String registrationToken,
+    required String name,
+    required String firmName,
+    String? gstNumber,
+    Map<String, dynamic> location = const {},
+  }) {
+    return _client.postJson(ApiConfig.registerDealer, {
+      ...location,
+      'registration_token': registrationToken,
       'name': name,
       'firm_name': firmName,
       if (gstNumber != null && gstNumber.trim().isNotEmpty) 'gst_number': gstNumber.trim(),
@@ -46,8 +60,26 @@ class DealerApiService {
   );
 }
   Future<Map<String, dynamic>> profile() => _client.getJson(ApiConfig.dealerProfile);
+  Future<Map<String, dynamic>> updateProfile(Map<String, dynamic> data) => _client.postJson(ApiConfig.dealerProfile, data);
+
+  Future<Map<String, dynamic>> uploadProfilePhoto(String filePath) async {
+    final bytes = await File(filePath).readAsBytes();
+    final filename = filePath.split(RegExp(r'[\\/]')).last;
+
+    return _client.postForm(ApiConfig.profilePhoto, FormData({'photo': MultipartFile(bytes, filename: filename)}));
+  }
   Future<Map<String, dynamic>> statements() => _client.getJson(ApiConfig.dealerStatements);
   Future<Map<String, dynamic>> saveAddress(Map<String, dynamic> data) => _client.postJson(ApiConfig.dealerAddresses, data);
+
+  /// Saved delivery addresses, default first.
+  Future<List<AddressModel>> addresses() async {
+    final response = await _client.getJson(ApiConfig.dealerAddresses);
+    final raw = response['data']?['addresses'];
+
+    if (raw is! List) return const [];
+
+    return raw.whereType<Map>().map((item) => AddressModel.fromJson(Map<String, dynamic>.from(item))).toList();
+  }
   Future<Map<String, dynamic>> support({required String subject, required String message}) => _client.postJson(ApiConfig.dealerSupport, {'subject': subject, 'message': message});
 
   Future<Map<String, dynamic>> products({
@@ -56,8 +88,9 @@ class DealerApiService {
   int? categoryId,
   String? categorySlug,
   int page = 1,
-  int perPage = 100,
-  bool fresh = true,
+  int perPage = 20,
+  // true bypasses the server cache — only for pull-to-refresh.
+  bool fresh = false,
 }) {
   return _client.getJson(
     ApiConfig.products,
@@ -78,7 +111,7 @@ class DealerApiService {
 }
 
 Future<Map<String, dynamic>> categories({
-  bool fresh = true,
+  bool fresh = false,
 }) {
   return _client.getJson(
     ApiConfig.categories,
@@ -97,6 +130,26 @@ Future<Map<String, dynamic>> categories({
     return _client.postJson(ApiConfig.dealerOrders, {
       'items': items,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+    });
+  }
+
+  /// False for accounts created by mobile OTP that never set a password.
+  Future<bool> hasPassword() async {
+    final response = await _client.getJson(ApiConfig.changePassword);
+    final value = response['data']?['has_password'];
+
+    return value == true || value == 1;
+  }
+
+  Future<Map<String, dynamic>> changePassword({
+    String? currentPassword,
+    required String password,
+    required String confirmation,
+  }) {
+    return _client.postJson(ApiConfig.changePassword, {
+      if (currentPassword != null && currentPassword.isNotEmpty) 'current_password': currentPassword,
+      'password': password,
+      'password_confirmation': confirmation,
     });
   }
 

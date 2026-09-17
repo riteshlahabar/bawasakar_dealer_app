@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import '../../../app/data/models/notification_model.dart';
 import '../../../app/data/services/auth_storage.dart';
 import '../../../app/data/services/notification_api_service.dart';
+import '../../../app/localization/t.dart';
 
 /// Owns the notification inbox and its unread badge count.
 class NotificationsController extends GetxController {
@@ -52,7 +53,7 @@ class NotificationsController extends GetxController {
       await _api.markRead();
       await load();
     } catch (failure) {
-      Get.snackbar('Notifications', failure.toString());
+      Get.snackbar(t('menu.notifications'), failure.toString());
     }
   }
 
@@ -62,7 +63,7 @@ class NotificationsController extends GetxController {
       await _api.markRead([notification.id]);
       await load();
     } catch (failure) {
-      Get.snackbar('Notifications', failure.toString());
+      Get.snackbar(t('menu.notifications'), failure.toString());
     }
   }
 }

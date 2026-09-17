@@ -9,10 +9,14 @@ class HomepageItemModel {
     this.validityText = '',
     this.couponCode = '',
     this.buttonText = '',
+    this.buttonUrl = '',
+    this.productId = 0,
     this.backgroundColor = '',
     this.textColor = '',
     this.imageUrl,
     this.mobileImageUrl,
+    this.logoImageUrl,
+    this.offerImageUrl,
   });
 
   final int id;
@@ -27,12 +31,20 @@ class HomepageItemModel {
 
   final String couponCode;
   final String buttonText;
+  final String buttonUrl;
+
+  /// Set when the entry is a product configured as a homepage banner/offer.
+  final int productId;
 
   final String backgroundColor;
   final String textColor;
 
   final String? imageUrl;
   final String? mobileImageUrl;
+
+  /// Bank / wallet logo for coupon-style offers.
+  final String? logoImageUrl;
+  final String? offerImageUrl;
 
   factory HomepageItemModel.fromJson(Map<String, dynamic> json) {
     return HomepageItemModel(
@@ -45,10 +57,14 @@ class HomepageItemModel {
       validityText: json['validity_text']?.toString() ?? '',
       couponCode: json['coupon_code']?.toString() ?? '',
       buttonText: json['button_text']?.toString() ?? '',
+      buttonUrl: json['button_url']?.toString() ?? '',
+      productId: _asInt(json['product_id']),
       backgroundColor: json['background_color']?.toString() ?? '',
       textColor: json['text_color']?.toString() ?? '',
       imageUrl: _image(json, 'image_url'),
       mobileImageUrl: _image(json, 'mobile_image_url'),
+      logoImageUrl: _image(json, 'logo_image_url'),
+      offerImageUrl: _image(json, 'offer_image_url'),
     );
   }
 
@@ -59,6 +75,9 @@ class HomepageItemModel {
 
     return imageUrl;
   }
+
+  /// Logo for a bank / wallet offer card, falling back to the main image.
+  String? get logoOrImageUrl => logoImageUrl ?? bestImageUrl;
 
   static int _asInt(dynamic value) {
     return int.tryParse(value?.toString() ?? '') ?? 0;

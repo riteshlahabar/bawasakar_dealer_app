@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/data/services/dealer_api_service.dart';
+import '../../../app/localization/t.dart';
 
 class AddressesController extends GetxController {
   AddressesController(this._api);
@@ -17,7 +18,7 @@ class AddressesController extends GetxController {
 
   Future<void> save() async {
     if (name.text.trim().isEmpty || mobile.text.trim().length < 10 || addressLine.text.trim().isEmpty) {
-      Get.snackbar('Address Required', 'Enter name, mobile and address.');
+      Get.snackbar(t('address.required'), t('address.required_short'));
       return;
     }
     isLoading.value = true;
@@ -31,9 +32,9 @@ class AddressesController extends GetxController {
         'pincode': pincode.text.trim(),
       });
       Get.back<void>();
-      Get.snackbar('Address Saved', 'Delivery address has been saved.');
+      Get.snackbar(t('address.saved_title'), t('address.saved_message'));
     } catch (error) {
-      Get.snackbar('Save Failed', error.toString());
+      Get.snackbar(t('address.save_failed'), error.toString());
     } finally {
       isLoading.value = false;
     }

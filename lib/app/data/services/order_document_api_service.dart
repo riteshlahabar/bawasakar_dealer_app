@@ -1,5 +1,7 @@
 import '../../config/api_config.dart';
+import '../models/invoice_detail_model.dart';
 import '../models/invoice_model.dart';
+import '../models/order_detail_model.dart';
 import '../models/return_request_model.dart';
 import '../models/tracking_model.dart';
 import 'api_client.dart';
@@ -20,6 +22,16 @@ class OrderDocumentApiService {
     );
   }
 
+  /// Full order: items, amounts, address, payment, invoice and dispatches.
+  Future<OrderDetailModel> orderDetail(int orderId) async {
+    final response = await _client.getJson(ApiConfig.dealerOrder(orderId));
+    final order = response['data']?['order'];
+
+    return OrderDetailModel.fromJson(
+      order is Map<String, dynamic> ? order : const <String, dynamic>{},
+    );
+  }
+
   Future<List<InvoiceModel>> invoices({int page = 1}) async {
     final response = await _client.getJson(
       ApiConfig.invoices,
@@ -32,6 +44,15 @@ class OrderDocumentApiService {
     return raw.whereType<Map<String, dynamic>>().map(InvoiceModel.fromJson).toList();
   }
 
+  /// One invoice with its billed lines and amount breakdown.
+  Future<InvoiceDetailModel> invoiceDetail(int invoiceId) async {
+    final response = await _client.getJson(ApiConfig.invoice(invoiceId));
+    final invoice = response['data']?['invoice'];
+
+    return InvoiceDetailModel.fromJson(
+      invoice is Map<String, dynamic> ? invoice : const <String, dynamic>{},
+    );
+  }
   Future<List<ReturnRequestModel>> returns({int page = 1}) async {
     final response = await _client.getJson(
       ApiConfig.returns,

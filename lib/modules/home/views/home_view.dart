@@ -12,6 +12,7 @@ import 'widgets/hero_banners.dart';
 import 'widgets/homepage_section.dart';
 import 'widgets/product_section.dart';
 import 'widgets/top_search_bar.dart';
+import '../../../app/localization/t.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -26,7 +27,7 @@ class HomeView extends GetView<HomeController> {
           controller.banners.isEmpty;
 
       if (controller.isLoading.value && isEmpty) {
-        return const LoadingView(message: 'Loading dealer store...');
+        return LoadingView(message: t('common.loading'));
       }
 
       final otherSections = controller.sections
@@ -70,19 +71,19 @@ class HomeView extends GetView<HomeController> {
       if (otherSections.isEmpty) {
         content.addAll([
           ProductSection(
-            title: 'Animal Medicine',
+            title: t('catalog.animal_medicine'),
             items: controller.featuredProducts,
             onSeeAll: () => _openCategory(0),
           ),
 
           ProductSection(
-            title: 'Top Selling Items',
+            title: t('catalog.top_selling'),
             items: controller.topSellingProducts,
             onSeeAll: () => _openCategory(0),
           ),
 
           ProductSection(
-            title: 'New Arrivals',
+            title: t('catalog.new_arrivals'),
             items: controller.newArrivals,
             onSeeAll: () => _openCategory(0),
           ),
@@ -91,13 +92,13 @@ class HomeView extends GetView<HomeController> {
 
       if (controller.errorMessage.value.isNotEmpty &&
           controller.products.isEmpty) {
-        content.add(ApiErrorView(onRetry: controller.loadHome));
+        content.add(ApiErrorView(onRetry: () => controller.loadHome(fresh: true)));
       }
 
       content.add(const SizedBox(height: 24));
 
       return RefreshIndicator(
-        onRefresh: controller.loadHome,
+        onRefresh: () => controller.loadHome(fresh: true),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: EdgeInsets.zero,

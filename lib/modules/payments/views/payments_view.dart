@@ -6,6 +6,7 @@ import '../../../app/widgets/app_card.dart';
 import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/payments_controller.dart';
+import '../../../app/localization/t.dart';
 
 class PaymentsView extends GetView<PaymentsController> {
   const PaymentsView({super.key});
@@ -13,15 +14,15 @@ class PaymentsView extends GetView<PaymentsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Payments')),
+      appBar: AppBar(title: Text(t('menu.payments'))),
       body: Obx(() {
         if (controller.isLoading.value && controller.payments.isEmpty) {
-          return const LoadingView(message: 'Loading payments...');
+          return LoadingView(message: t('common.loading'));
         }
         if (controller.isEmpty) {
-          return const EmptyState(
-            title: 'No payments yet',
-            message: 'Payments you make against invoices will appear here.',
+          return EmptyState(
+            title: t('payments.empty_title'),
+            message: t('payments.empty_message'),
             icon: Icons.payments_outlined,
           );
         }
@@ -37,7 +38,7 @@ class PaymentsView extends GetView<PaymentsController> {
                   children: [
                     Expanded(
                       child: _Total(
-                        label: 'Paid',
+                        label: t('common.paid'),
                         value: controller.paidTotal.value,
                         color: AppColors.success,
                       ),
@@ -45,7 +46,7 @@ class PaymentsView extends GetView<PaymentsController> {
                     Container(width: 1, height: 34, color: AppColors.border),
                     Expanded(
                       child: _Total(
-                        label: 'Pending',
+                        label: t('common.pending'),
                         value: controller.pendingTotal.value,
                         color: AppColors.orange,
                       ),

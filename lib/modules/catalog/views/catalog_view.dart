@@ -7,6 +7,7 @@ import '../controllers/catalog_controller.dart';
 import 'widgets/catalog_search_field.dart';
 import 'widgets/category_menu.dart';
 import 'widgets/product_grid.dart';
+import '../../../app/localization/t.dart';
 
 class CatalogView extends GetView<CatalogController> {
   const CatalogView({super.key});
@@ -48,10 +49,17 @@ class CatalogView extends GetView<CatalogController> {
   Widget _productArea() {
     final products = controller.filteredProducts;
 
+    final grid = ProductGrid(
+      products: products,
+      onRefresh: controller.loadCatalog,
+      onLoadMore: controller.loadMore,
+      isLoadingMore: controller.isLoadingMore.value,
+    );
+
     if (controller.isLoading.value && products.isNotEmpty) {
       return Stack(
         children: [
-          ProductGrid(products: products, onRefresh: controller.loadCatalog),
+          grid,
           const Positioned(
             left: 0,
             right: 0,
@@ -65,19 +73,19 @@ class CatalogView extends GetView<CatalogController> {
     if (products.isEmpty) {
       return RefreshIndicator(
         onRefresh: controller.loadCatalog,
-        child: const SingleChildScrollView(
+        child: SingleChildScrollView(
           physics: AlwaysScrollableScrollPhysics(),
           child: SizedBox(
             height: 420,
             child: EmptyState(
-              title: 'No Products',
-              message: 'No dealer product found in selected category.',
+              title: t('catalog.no_products_title'),
+              message: t('catalog.no_products_message'),
             ),
           ),
         ),
       );
     }
 
-    return ProductGrid(products: products, onRefresh: controller.loadCatalog);
+    return grid;
   }
 }

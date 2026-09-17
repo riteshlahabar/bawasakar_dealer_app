@@ -59,6 +59,17 @@ class HomepageSectionModel {
 
   bool get isCategory => type == 'category_section';
 
+  /// "Bank & Wallet Offers" — shown as a two-column offer grid.
+  bool get isCoupon => type == 'coupon_section';
+
+  /// Sections whose content is banners/offers, even when admin configured
+  /// them with products (the server sends those products as [items]).
+  bool get isBannerType => const {
+        'top_small_banners',
+        'offer_section',
+        'strip_offer_banner',
+      }.contains(type);
+
   bool get hasProducts => products.isNotEmpty;
 
   bool get hasBanners =>

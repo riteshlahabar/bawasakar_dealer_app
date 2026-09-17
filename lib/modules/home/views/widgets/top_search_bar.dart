@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/localization/t.dart';
 
 /// Search field + category grid shortcut shown at the top of the home tab.
 class TopSearchBar extends StatelessWidget {
@@ -22,8 +23,8 @@ class TopSearchBar extends StatelessWidget {
           Expanded(
             child: TextField(
               onChanged: onSearchChanged,
-              decoration: const InputDecoration(
-                hintText: 'Search dealer products...',
+              decoration: InputDecoration(
+                hintText: t('catalog.search_hint'),
                 prefixIcon: Icon(Icons.search_rounded),
               ),
             ),

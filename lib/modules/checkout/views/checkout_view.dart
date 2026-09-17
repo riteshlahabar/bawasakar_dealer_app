@@ -4,6 +4,8 @@ import 'package:get/get.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/widgets/app_card.dart';
 import '../controllers/checkout_controller.dart';
+import 'widgets/checkout_address_card.dart';
+import '../../../app/localization/t.dart';
 
 class CheckoutView extends GetView<CheckoutController> {
   const CheckoutView({super.key});
@@ -11,22 +13,24 @@ class CheckoutView extends GetView<CheckoutController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Dealer Checkout')),
+      appBar: AppBar(title: Text(t('cart.checkout_title'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          CheckoutAddressCard(service: controller.addresses),
+          const SizedBox(height: 14),
           AppCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('B2B Order Summary', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                Text(t('checkout.order_summary'), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
                 const SizedBox(height: 8),
-                const Text('This order will be sent to your assigned salesman, then forwarded to admin for processing.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.35)),
+                Text(t('checkout.salesman_note'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 12.5, height: 1.35)),
                 const SizedBox(height: 14),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('${controller.cart.totalItems} items', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+                    Text((controller.cart.totalItems == 1 ? t('cart.case_count_one', {'n': '${controller.cart.totalItems}'}) : t('cart.case_count_many', {'n': '${controller.cart.totalItems}'})), style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
                     Text('₹${controller.cart.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.primary)),
                   ],
                 ),
@@ -38,23 +42,23 @@ class CheckoutView extends GetView<CheckoutController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Payment Preference', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
+                Text(t('checkout.payment_preference'), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15)),
                 const SizedBox(height: 10),
                 Obx(
                   () => RadioGroup<String>(
                     groupValue: controller.paymentMethod.value,
                     onChanged: (value) => controller.paymentMethod.value = value ?? 'Pay Later / Credit',
-                    child: const Column(
+                    child: Column(
                       children: [
                         RadioListTile<String>(
                           value: 'Pay Later / Credit',
                           activeColor: AppColors.primary,
-                          title: Text('Pay Later / Dealer Credit', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                          title: Text(t('checkout.pay_later'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                         ),
                         RadioListTile<String>(
                           value: 'Cash / UPI Collection',
                           activeColor: AppColors.primary,
-                          title: Text('Cash / UPI Collection', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+                          title: Text(t('checkout.cash_upi'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                         ),
                       ],
                     ),
@@ -64,11 +68,11 @@ class CheckoutView extends GetView<CheckoutController> {
             ),
           ),
           const SizedBox(height: 14),
-          TextField(controller: controller.notes, maxLines: 3, decoration: const InputDecoration(labelText: 'Order Notes / Delivery Instructions')),
+          TextField(controller: controller.notes, maxLines: 3, decoration: InputDecoration(labelText: t('checkout.order_notes'))),
           const SizedBox(height: 20),
           Obx(() => ElevatedButton(
                 onPressed: controller.isLoading.value ? null : controller.placeOrder,
-                child: Text(controller.isLoading.value ? 'Submitting Order...' : 'Submit Dealer Order ₹${controller.cart.subtotal.toStringAsFixed(0)}'),
+                child: Text(controller.isLoading.value ? t('checkout.submitting_order') : t('checkout.submit_dealer_order', {'amount': '₹${controller.cart.subtotal.toStringAsFixed(0)}'})),
               )),
         ],
       ),

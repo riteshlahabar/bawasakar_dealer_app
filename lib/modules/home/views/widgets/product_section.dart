@@ -4,6 +4,7 @@ import '../../../../app/data/models/product_model.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../app/widgets/product_card.dart';
 import '../../../../app/widgets/section_header.dart';
+import '../../../../app/localization/t.dart';
 
 /// Horizontal row of product cards under a titled section header.
 class ProductSection extends StatelessWidget {
@@ -31,7 +32,7 @@ class ProductSection extends StatelessWidget {
       children: [
         SectionHeader(
           title: title,
-          actionText: 'See All',
+          actionText: t('common.see_all'),
           onAction: onSeeAll,
         ),
         if (subtitle.trim().isNotEmpty)

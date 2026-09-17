@@ -7,6 +7,7 @@ import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/reports_controller.dart';
 import 'widgets/report_bucket_list.dart';
+import '../../../app/localization/t.dart';
 
 class ReportsView extends GetView<ReportsController> {
   const ReportsView({super.key});
@@ -14,19 +15,19 @@ class ReportsView extends GetView<ReportsController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Reports')),
+      appBar: AppBar(title: Text(t('menu.reports'))),
       body: Obx(() {
         if (controller.isLoading.value && controller.report.value == null) {
-          return const LoadingView(message: 'Building your report...');
+          return LoadingView(message: t('common.loading'));
         }
 
         final report = controller.report.value;
 
         if (report == null) {
           return EmptyState(
-            title: 'Report unavailable',
+            title: t('reports.unavailable'),
             message: controller.error.value.isEmpty
-                ? 'We could not build your purchase report.'
+                ? t('reports.load_failed')
                 : controller.error.value,
             icon: Icons.insert_chart_outlined,
           );
@@ -45,7 +46,7 @@ class ReportsView extends GetView<ReportsController> {
                       .map((window) => Padding(
                             padding: const EdgeInsets.only(right: 8),
                             child: ChoiceChip(
-                              label: Text('$window months'),
+                              label: Text(t('common.months', {'n': '$window'})),
                               selected: controller.months.value == window,
                               onSelected: (_) => controller.changeWindow(window),
                             ),
@@ -61,8 +62,8 @@ class ReportsView extends GetView<ReportsController> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Orders placed',
+                          Text(
+                            t('reports.orders_placed'),
                             style: TextStyle(
                                 color: AppColors.textSecondary, fontSize: 12),
                           ),
@@ -78,8 +79,8 @@ class ReportsView extends GetView<ReportsController> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        const Text(
-                          'Purchase value',
+                        Text(
+                          t('reports.purchase_value'),
                           style: TextStyle(
                               color: AppColors.textSecondary, fontSize: 12),
                         ),
@@ -98,18 +99,18 @@ class ReportsView extends GetView<ReportsController> {
                 ),
               ),
               const SizedBox(height: 16),
-              ReportBucketList(title: 'By status', buckets: report.byStatus),
+              ReportBucketList(title: t('reports.by_status'), buckets: report.byStatus),
               const SizedBox(height: 16),
-              ReportBucketList(title: 'By month', buckets: report.byMonth),
+              ReportBucketList(title: t('reports.by_month'), buckets: report.byMonth),
               const SizedBox(height: 16),
-              const Text(
-                'Top products',
+              Text(
+                t('reports.top_products'),
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
               ),
               const SizedBox(height: 10),
               if (controller.products.isEmpty)
-                const Text(
-                  'No purchases in this window.',
+                Text(
+                  t('reports.no_purchases'),
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                 )
               else
@@ -131,7 +132,7 @@ class ReportsView extends GetView<ReportsController> {
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                'Qty ${row.quantity.toStringAsFixed(2)}',
+                                t('common.qty', {'n': row.quantity.toStringAsFixed(2)}),
                                 style: const TextStyle(
                                     color: AppColors.textSecondary, fontSize: 11.5),
                               ),

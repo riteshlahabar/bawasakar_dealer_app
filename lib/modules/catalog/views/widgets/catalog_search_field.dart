@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../app/localization/t.dart';
 
 /// Search field shown above the category menu / product grid.
 class CatalogSearchField extends StatelessWidget {
@@ -12,8 +13,8 @@ class CatalogSearchField extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 12),
       child: TextField(
         onChanged: onSearchChanged,
-        decoration: const InputDecoration(
-          hintText: 'Search dealer product',
+        decoration: InputDecoration(
+          hintText: t('catalog.search_short'),
           prefixIcon: Icon(Icons.search_rounded),
         ),
       ),

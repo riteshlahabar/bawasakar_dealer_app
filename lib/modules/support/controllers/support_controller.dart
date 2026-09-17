@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 import '../../../app/data/services/dealer_api_service.dart';
+import '../../../app/localization/t.dart';
 
 class SupportController extends GetxController {
   SupportController(this._api);
@@ -13,16 +14,16 @@ class SupportController extends GetxController {
 
   Future<void> submit() async {
     if (subject.text.trim().isEmpty || message.text.trim().isEmpty) {
-      Get.snackbar('Required', 'Enter subject and message.');
+      Get.snackbar(t('common.required'), t('support.enter_subject_message'));
       return;
     }
     isLoading.value = true;
     try {
       await _api.support(subject: subject.text.trim(), message: message.text.trim());
       Get.back<void>();
-      Get.snackbar('Support Sent', 'Your support ticket has been created.');
+      Get.snackbar(t('support.sent'), t('support.sent_message'));
     } catch (error) {
-      Get.snackbar('Support Failed', error.toString());
+      Get.snackbar(t('support.failed'), error.toString());
     } finally {
       isLoading.value = false;
     }

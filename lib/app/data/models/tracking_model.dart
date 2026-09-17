@@ -1,3 +1,6 @@
+import 'package:intl/intl.dart';
+import '../../localization/t.dart';
+
 /// One checkpoint in the order timeline.
 class TrackingStageModel {
   const TrackingStageModel({
@@ -22,6 +25,14 @@ class TrackingStageModel {
       at: (at == null || at.isEmpty) ? null : at,
     );
   }
+
+  DateTime? get time => at == null ? null : DateTime.tryParse(at!)?.toLocal();
+
+  /// e.g. "14 Sep".
+  String get dateLabel => time == null ? '' : DateFormat('dd MMM').format(time!);
+
+  /// e.g. "14 Sep 2026, 10:22 AM", or "Pending".
+  String get dateTimeLabel => time == null ? t('common.pending') : DateFormat('dd MMM yyyy, hh:mm a').format(time!);
 }
 
 /// Courier details attached to a dispatch, when one exists.
@@ -35,6 +46,8 @@ class CourierModel {
 
   bool get hasTracking => (trackingNo ?? '').isNotEmpty;
 
+  bool get hasLink => (trackingUrl ?? '').isNotEmpty;
+
   factory CourierModel.fromJson(Map<String, dynamic> json) {
     return CourierModel(
       name: json['name']?.toString(),
@@ -45,7 +58,7 @@ class CourierModel {
   }
 }
 
-/// Full response of `/customer/orders/{id}/tracking`.
+/// Full response of the order tracking endpoint.
 class OrderTrackingModel {
   const OrderTrackingModel({
     required this.orderNo,
@@ -53,6 +66,7 @@ class OrderTrackingModel {
     required this.stages,
     this.courier,
     this.total = 0,
+    this.createdAt = '',
   });
 
   final String orderNo;
@@ -60,11 +74,26 @@ class OrderTrackingModel {
   final List<TrackingStageModel> stages;
   final CourierModel? courier;
   final double total;
+  final String createdAt;
+
+  bool get isCancelled => status == 'cancelled' || status == 'rejected';
 
   /// Index of the furthest completed stage, which the stepper highlights.
   int get currentStage {
     final lastDone = stages.lastIndexWhere((stage) => stage.done);
     return lastDone < 0 ? 0 : lastDone;
+  }
+
+  /// The most recent completed stage, or null before the first update.
+  TrackingStageModel? get lastDoneStage {
+    final index = stages.lastIndexWhere((stage) => stage.done);
+    return index < 0 ? null : stages[index];
+  }
+
+  /// e.g. "14 Sep 2026".
+  String get placedLabel {
+    final parsed = DateTime.tryParse(createdAt);
+    return parsed == null ? '' : DateFormat('dd MMM yyyy').format(parsed.toLocal());
   }
 
   factory OrderTrackingModel.fromJson(Map<String, dynamic> json) {
@@ -77,6 +106,7 @@ class OrderTrackingModel {
       orderNo: orderMap['order_no']?.toString() ?? '',
       status: orderMap['status']?.toString() ?? '',
       total: double.tryParse(orderMap['grand_total']?.toString() ?? '') ?? 0,
+      createdAt: orderMap['created_at']?.toString() ?? '',
       stages: stages is List
           ? stages
               .whereType<Map<String, dynamic>>()

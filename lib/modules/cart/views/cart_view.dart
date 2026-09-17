@@ -1,110 +1,133 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 
+import '../../../app/data/services/cart_service.dart';
+import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
-import '../../../app/widgets/empty_state.dart';
-import '../../../app/widgets/product_image.dart';
+import '../../main_shell/controllers/main_shell_controller.dart';
 import '../controllers/cart_controller.dart';
+import 'widgets/cart_bottom_bar.dart';
+import 'widgets/cart_deliver_to_strip.dart';
+import 'widgets/cart_item_card.dart';
+import 'widgets/cart_price_details.dart';
+import 'widgets/credit_banner.dart';
+import 'widgets/empty_cart_view.dart';
+import 'widgets/saved_for_later_section.dart';
+import '../../../app/localization/t.dart';
 
 class CartView extends GetView<CartController> {
   const CartView({super.key});
 
+  static final _money = NumberFormat.decimalPattern('en_IN');
+
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.cart.items.isEmpty) {
-        return const EmptyState(title: 'Cart is Empty', message: 'Add medicines, seeds or farm products to continue shopping.', icon: Icons.shopping_cart_outlined);
+      final cart = controller.cart;
+      final items = cart.items;
+
+      if (items.isEmpty && cart.savedForLater.isEmpty) {
+        return EmptyCartView(
+          products: controller.recentProducts.toList(),
+          onShopNow: _shopNow,
+          onAdd: controller.addToCart,
+          onRefresh: controller.load,
+        );
       }
+
       return Column(
         children: [
           Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: controller.cart.items.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (_, index) {
-                final item = controller.cart.items[index];
-                return Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.border)),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: ProductImage(imageUrl: item.product.imageUrl, assetPath: item.product.assetPath, width: 72, height: 72, fit: BoxFit.cover),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.product.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                            const SizedBox(height: 4),
-                            Text('₹${item.product.price.toStringAsFixed(0)}', style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w900)),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                _QtyButton(icon: Icons.remove, onTap: () => controller.decrease(item.product)),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                                  child: Text(item.quantity.toString(), style: const TextStyle(fontWeight: FontWeight.w800)),
-                                ),
-                                _QtyButton(icon: Icons.add, onTap: () => controller.increase(item.product)),
-                              ],
-                            ),
-                          ],
+            child: RefreshIndicator(
+              onRefresh: controller.load,
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 20),
+                children: [
+                  CartDeliverToStrip(service: controller.addresses),
+                  const SizedBox(height: 12),
+                  if (items.isNotEmpty) ...[
+                    _summary(cart),
+                    const SizedBox(height: 12),
+                    CreditBanner(
+                      available: controller.availableCredit,
+                      exceeds: controller.exceedsCredit,
+                      orderTotal: cart.subtotal,
+                    ),
+                    for (final item in items)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: CartItemCard(
+                          item: item,
+                          onIncrease: () => controller.increase(item.product),
+                          onDecrease: () => controller.decrease(item.product),
+                          onRemove: () => controller.remove(item.product),
+                          onSaveForLater: () => controller.saveForLater(item.product),
                         ),
                       ),
-                      IconButton(onPressed: () => controller.remove(item.product), icon: const Icon(Icons.delete_outline, color: AppColors.danger)),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: const BoxDecoration(color: Colors.white, border: Border(top: BorderSide(color: AppColors.border))),
-            child: SafeArea(
-              top: false,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      const Text('Subtotal', style: TextStyle(color: AppColors.textSecondary)),
-                      const Spacer(),
-                      Text('₹${controller.cart.subtotal.toStringAsFixed(0)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(onPressed: controller.checkout, child: const Text('Proceed to Checkout')),
+                  ] else
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      child: Text(t('cart.empty_title'), style: const TextStyle(color: AppColors.textSecondary)),
+                    ),
+                  if (cart.savedForLater.isNotEmpty)
+                    SavedForLaterSection(
+                      products: cart.savedForLater.toList(),
+                      onMoveToCart: controller.moveToCart,
+                      onDelete: controller.removeSaved,
+                    ),
+                  if (items.isNotEmpty) CartPriceDetails(cart: cart),
                 ],
               ),
             ),
           ),
+          if (items.isNotEmpty)
+            CartBottomBar(
+              total: cart.subtotal,
+              countLabel: (cart.totalItems == 1 ? t('cart.case_count_one', {'n': '${cart.totalItems}'}) : t('cart.case_count_many', {'n': '${cart.totalItems}'})),
+              onProceed: controller.checkout,
+            ),
         ],
       );
     });
   }
-}
 
-class _QtyButton extends StatelessWidget {
-  const _QtyButton({required this.icon, required this.onTap});
-
-  final IconData icon;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(9),
-      child: Container(
-        width: 28,
-        height: 28,
-        decoration: BoxDecoration(color: AppColors.primarySoft, borderRadius: BorderRadius.circular(9)),
-        child: Icon(icon, size: 16, color: AppColors.primary),
+  Widget _summary(CartService cart) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text.rich(
+            TextSpan(
+              text: t('cart.subtotal_items', {'count': (cart.totalItems == 1 ? t('cart.case_count_one', {'n': '${cart.totalItems}'}) : t('cart.case_count_many', {'n': '${cart.totalItems}'}))}),
+              style: const TextStyle(fontSize: 15, color: AppColors.textSecondary),
+              children: [
+                TextSpan(
+                  text: '₹${_money.format(cart.subtotal)}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+          ElevatedButton(onPressed: controller.checkout, child: Text(t('cart.proceed_to_buy'))),
+        ],
       ),
     );
+  }
+
+  void _shopNow() {
+    if (Get.isRegistered<MainShellController>()) {
+      Get.find<MainShellController>().changeTab(1);
+    }
+    if (Get.currentRoute != AppRoutes.main) {
+      Get.back<void>();
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../../../app/data/models/category_model.dart';
 import '../../../../app/widgets/section_header.dart';
 import 'category_tile.dart';
+import '../../../../app/localization/t.dart';
 
 /// "Shop By Category" horizontal strip.
 class CategoriesSection extends StatelessWidget {
@@ -27,8 +28,8 @@ class CategoriesSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionHeader(
-          title: 'Shop By Category',
-          actionText: 'View All',
+          title: t('catalog.shop_by_category'),
+          actionText: t('common.view_all'),
           onAction: onViewAll,
         ),
         SizedBox(

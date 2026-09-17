@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
+import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
-import '../../../app/widgets/app_card.dart';
 import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/invoices_controller.dart';
+import 'widgets/invoice_card.dart';
+import 'widgets/invoice_search_field.dart';
+import '../../../app/localization/t.dart';
 
 class InvoicesView extends GetView<InvoicesController> {
   const InvoicesView({super.key});
@@ -13,65 +16,55 @@ class InvoicesView extends GetView<InvoicesController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Invoices')),
+      backgroundColor: AppColors.scaffold,
+      appBar: AppBar(title: Text(t('menu.invoices'))),
       body: Obx(() {
         if (controller.isLoading.value && controller.invoices.isEmpty) {
-          return const LoadingView(message: 'Loading invoices...');
+          return LoadingView(message: t('common.loading'));
         }
         if (controller.isEmpty) {
-          return const EmptyState(
-            title: 'No invoices yet',
-            message: 'An invoice appears here once your order is billed.',
+          return EmptyState(
+            title: t('invoice.empty_title'),
+            message: t('invoice.empty_message'),
             icon: Icons.receipt_long_outlined,
           );
         }
 
+        final invoices = controller.visibleInvoices;
+
         return RefreshIndicator(
           color: AppColors.primary,
           onRefresh: controller.load,
-          child: ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: controller.invoices.length,
-            itemBuilder: (context, index) {
-              final invoice = controller.invoices[index];
+          child: Column(
+            children: [
+              InvoiceSearchField(onChanged: controller.onSearchChanged),
+              Expanded(
+                child: invoices.isEmpty
+                    ? EmptyState(
+                        title: t('invoice.no_match_title'),
+                        message: t('invoice.no_match_message'),
+                        icon: Icons.search_off_rounded,
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
+                        itemCount: invoices.length,
+                        itemBuilder: (context, index) {
+                          final invoice = invoices[index];
 
-              return AppCard(
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 20,
-                      backgroundColor: AppColors.primarySoft,
-                      child: Icon(Icons.receipt_long, color: AppColors.primary, size: 20),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            invoice.invoiceNo,
-                            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13.5),
-                          ),
-                          const SizedBox(height: 3),
-                          Text(
-                            '${invoice.orderNo} • ${invoice.invoiceDate}',
-                            style: const TextStyle(
-                              color: AppColors.textSecondary,
-                              fontSize: 12,
+                          return InvoiceCard(
+                            invoice: invoice,
+                            isDownloading:
+                                controller.downloadingId.value == invoice.id,
+                            onOpen: () => Get.toNamed<void>(
+                              AppRoutes.invoiceDetail,
+                              arguments: invoice.id,
                             ),
-                          ),
-                        ],
+                            onDownload: () => controller.download(invoice),
+                          );
+                        },
                       ),
-                    ),
-                    Text(
-                      '₹${invoice.total.toStringAsFixed(2)}',
-                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-                    ),
-                  ],
-                ),
-              );
-            },
+              ),
+            ],
           ),
         );
       }),

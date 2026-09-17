@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'summary_card.dart';
+import '../../../../app/localization/t.dart';
 
 /// Row of credit limit / outstanding / pending order summary tiles.
 class DealerSummary extends StatelessWidget {
@@ -23,7 +24,7 @@ class DealerSummary extends StatelessWidget {
         children: [
           Expanded(
             child: SummaryCard(
-              title: 'Credit Limit',
+              title: t('home.credit_limit'),
               value: creditLimit,
               icon: Icons.account_balance_wallet_outlined,
             ),
@@ -31,7 +32,7 @@ class DealerSummary extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: SummaryCard(
-              title: 'Outstanding',
+              title: t('home.outstanding'),
               value: outstanding,
               icon: Icons.payments_outlined,
             ),
@@ -39,7 +40,7 @@ class DealerSummary extends StatelessWidget {
           const SizedBox(width: 10),
           Expanded(
             child: SummaryCard(
-              title: 'Pending',
+              title: t('home.pending'),
               value: pendingOrders,
               icon: Icons.pending_actions_outlined,
             ),

@@ -7,6 +7,7 @@ import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/outstanding_controller.dart';
 import 'widgets/credit_gauge.dart';
+import '../../../app/localization/t.dart';
 
 class OutstandingView extends GetView<OutstandingController> {
   const OutstandingView({super.key});
@@ -14,19 +15,19 @@ class OutstandingView extends GetView<OutstandingController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Outstanding & Credit')),
+      appBar: AppBar(title: Text(t('menu.outstanding'))),
       body: Obx(() {
         if (controller.isLoading.value && controller.credit.value == null) {
-          return const LoadingView(message: 'Loading your account...');
+          return LoadingView(message: t('common.loading'));
         }
 
         final credit = controller.credit.value;
 
         if (credit == null) {
           return EmptyState(
-            title: 'Account unavailable',
+            title: t('outstanding.unavailable'),
             message: controller.error.value.isEmpty
-                ? 'We could not load your credit position.'
+                ? t('outstanding.load_failed')
                 : controller.error.value,
             icon: Icons.account_balance_wallet_outlined,
           );
@@ -44,7 +45,7 @@ class OutstandingView extends GetView<OutstandingController> {
                 children: [
                   Expanded(
                     child: _StatTile(
-                      label: 'Unpaid orders',
+                      label: t('outstanding.unpaid_orders'),
                       value: credit.unpaidOrders.toString(),
                       icon: Icons.pending_actions_outlined,
                     ),
@@ -52,7 +53,7 @@ class OutstandingView extends GetView<OutstandingController> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: _StatTile(
-                      label: 'Last payment',
+                      label: t('outstanding.last_payment'),
                       value: credit.lastPayment == null
                           ? '-'
                           : '₹${credit.lastPayment!.amount.toStringAsFixed(0)}',
@@ -62,16 +63,16 @@ class OutstandingView extends GetView<OutstandingController> {
                 ],
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Ledger',
+              Text(
+                t('outstanding.ledger'),
                 style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14.5),
               ),
               const SizedBox(height: 10),
               if (controller.ledger.isEmpty)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.symmetric(vertical: 24),
                   child: Text(
-                    'No ledger entries yet.',
+                    t('outstanding.no_ledger'),
                     textAlign: TextAlign.center,
                     style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5),
                   ),

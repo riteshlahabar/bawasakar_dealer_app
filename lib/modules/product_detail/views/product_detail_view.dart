@@ -5,6 +5,7 @@ import '../../../app/routes/app_routes.dart';
 import '../../../app/theme/app_colors.dart';
 import '../../../app/widgets/product_image.dart';
 import '../controllers/product_detail_controller.dart';
+import '../../../app/localization/t.dart';
 
 class ProductDetailView extends GetView<ProductDetailController> {
   const ProductDetailView({super.key});
@@ -14,7 +15,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
     final product = controller.product;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Details'),
+        title: Text(t('catalog.product_details')),
         actions: [IconButton(onPressed: () => Get.toNamed(AppRoutes.cart), icon: const Icon(Icons.shopping_cart_outlined))],
       ),
       body: ListView(
@@ -46,7 +47,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                 const SizedBox(height: 12),
                 Text(product.name, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w900, height: 1.2)),
                 const SizedBox(height: 8),
-                Text(product.shortDescription.isNotEmpty ? product.shortDescription : 'Premium quality product for farm and livestock care.', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5)),
+                Text(product.shortDescription.isNotEmpty ? product.shortDescription : t('catalog.default_short_description'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.5)),
                 const SizedBox(height: 16),
                 Row(
                   children: [
@@ -59,9 +60,9 @@ class ProductDetailView extends GetView<ProductDetailController> {
                   ],
                 ),
                 const SizedBox(height: 18),
-                const Text('Description', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
+                Text(t('common.description'), style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800)),
                 const SizedBox(height: 7),
-                Text(product.description.isNotEmpty ? product.description : 'Use this product as per label instructions and professional guidance. Keep it stored safely and away from children.', style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.6)),
+                Text(product.description.isNotEmpty ? product.description : t('catalog.default_description'), style: const TextStyle(color: AppColors.textSecondary, fontSize: 13, height: 1.6)),
                 const SizedBox(height: 90),
               ],
             ),
@@ -86,7 +87,7 @@ class ProductDetailView extends GetView<ProductDetailController> {
                     ),
                   )),
               const SizedBox(width: 12),
-              Expanded(child: ElevatedButton(onPressed: controller.addToCart, child: const Text('Add to Cart'))),
+              Expanded(child: ElevatedButton(onPressed: controller.addToCart, child: Text(t('catalog.add_to_cart')))),
             ],
           ),
         ),

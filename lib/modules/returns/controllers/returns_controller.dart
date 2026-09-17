@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 
 import '../../../app/data/models/return_request_model.dart';
 import '../../../app/data/services/order_document_api_service.dart';
+import '../../../app/localization/t.dart';
 
 /// Lists the customer's returns and raises new ones.
 class ReturnsController extends GetxController {
@@ -41,7 +42,7 @@ class ReturnsController extends GetxController {
   Future<bool> submit(int orderId) async {
     final reason = reasonInput.text.trim();
     if (reason.isEmpty) {
-      Get.snackbar('Return', 'Tell us why you are returning this order.');
+      Get.snackbar(t('orders.return'), t('returns.tell_why'));
       return false;
     }
 
@@ -50,10 +51,10 @@ class ReturnsController extends GetxController {
       await _api.requestReturn(orderId: orderId, reason: reason);
       reasonInput.clear();
       await load();
-      Get.snackbar('Return', 'Your return request has been submitted.');
+      Get.snackbar(t('orders.return'), t('returns.submitted'));
       return true;
     } catch (failure) {
-      Get.snackbar('Return', failure.toString());
+      Get.snackbar(t('orders.return'), failure.toString());
       return false;
     } finally {
       isSubmitting.value = false;

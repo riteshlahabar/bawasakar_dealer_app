@@ -6,6 +6,7 @@ import '../data/services/cart_service.dart';
 import '../routes/app_routes.dart';
 import '../theme/app_colors.dart';
 import 'product_image.dart';
+import '../localization/t.dart';
 
 class ProductCard extends StatelessWidget {
   const ProductCard({super.key, required this.product, this.compact = false});
@@ -78,10 +79,29 @@ class ProductCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Dealer Price', style: TextStyle(fontSize: 9.5, color: AppColors.textSecondary, fontWeight: FontWeight.w700)),
-                            Text('₹${product.price.toStringAsFixed(0)}', style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: AppColors.primary)),
-                            if (product.mrp > product.price)
-                              Text('₹${product.mrp.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, decoration: TextDecoration.lineThrough)),
+                            // Dealers buy by the case: price is for one full case.
+                            Text.rich(
+                              TextSpan(
+                                text: '₹${product.casePrice.toStringAsFixed(0)}',
+                                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: AppColors.primary),
+                                children: [
+                                  TextSpan(
+                                    text: ' ${t('catalog.per_case')}',
+                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                                  ),
+                                ],
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            if (product.caseMrp > product.casePrice)
+                              Text('₹${product.caseMrp.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, decoration: TextDecoration.lineThrough)),
+                            Text(
+                              product.caseLabel,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                            ),
                           ],
                         ),
                       ),
@@ -91,7 +111,7 @@ class ProductCard extends StatelessWidget {
                         child: ElevatedButton(
                           onPressed: () {
                             cart.add(product);
-                            Get.snackbar('Added', '${product.name} added to cart', snackPosition: SnackPosition.BOTTOM);
+                            Get.snackbar(t('common.added'), t('common.added_to_cart', {'name': product.name}), snackPosition: SnackPosition.BOTTOM);
                           },
                           style: ElevatedButton.styleFrom(
                             padding: EdgeInsets.zero,

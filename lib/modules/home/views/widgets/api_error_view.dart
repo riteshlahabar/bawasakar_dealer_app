@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../app/localization/t.dart';
 
 /// Shown when the home feed failed to load and there is no cached data.
 class ApiErrorView extends StatelessWidget {
@@ -27,15 +28,15 @@ class ApiErrorView extends StatelessWidget {
               color: AppColors.primary,
             ),
             const SizedBox(height: 10),
-            const Text(
-              'Unable to load dealer products',
+            Text(
+              t('home.load_failed'),
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Try Again'),
+              label: Text(t('common.retry')),
             ),
           ],
         ),

@@ -1,4 +1,5 @@
 import '../../../app/data/services/auth_storage.dart';
+import '../../../app/localization/t.dart';
 
 /// Parses a Laravel login / OTP response and persists the session when a
 /// token was returned.
@@ -21,8 +22,8 @@ class AuthSessionSaver {
     final rawData = response['data'] ?? response;
 
     if (rawData is! Map) {
-      throw const FormatException(
-        'Invalid response received from server.',
+      throw FormatException(
+        t('common.invalid_server_response'),
       );
     }
 

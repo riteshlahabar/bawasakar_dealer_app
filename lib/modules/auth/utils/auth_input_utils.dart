@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import '../../../app/localization/t.dart';
 
 /// A validation failure: a snackbar title paired with its message.
 class AuthValidationError {
@@ -8,8 +9,8 @@ class AuthValidationError {
   final String message;
 }
 
-/// Stateless validation / formatting helpers shared by the OTP and
-/// email/password auth flows.
+/// Stateless validation / formatting helpers shared by the OTP,
+/// registration and email/password auth flows.
 class AuthInputUtils {
   const AuthInputUtils._();
 
@@ -27,35 +28,19 @@ class AuthInputUtils {
     }
 
     if (message.isEmpty) {
-      return 'Something went wrong. Please try again.';
+      return t('common.something_wrong');
     }
 
     return message;
   }
 
-  static AuthValidationError? validateOtpRequest({
-    required String dealerName,
-    required String firmName,
-    required String mobile,
-  }) {
-    if (dealerName.length < 3) {
-      return const AuthValidationError(
-        'Dealer Name Required',
-        'Enter dealer owner/contact name.',
-      );
-    }
-
-    if (firmName.length < 2) {
-      return const AuthValidationError(
-        'Firm Name Required',
-        'Enter shop/firm name.',
-      );
-    }
-
+  /// Login and registration both start with the mobile number only; firm
+  /// details are checked by [validateRegistration] after OTP verification.
+  static AuthValidationError? validateOtpRequest({required String mobile}) {
     if (!isValidMobile(mobile)) {
-      return const AuthValidationError(
-        'Mobile Required',
-        'Enter a valid 10 digit mobile number.',
+      return AuthValidationError(
+        t('auth.mobile_required'),
+        t('auth.enter_valid_mobile_10'),
       );
     }
 
@@ -64,16 +49,16 @@ class AuthInputUtils {
 
   static AuthValidationError? validateOtpCode(String otp) {
     if (otp.length != 6) {
-      return const AuthValidationError(
-        'OTP Required',
-        'Enter the 6 digit OTP.',
+      return AuthValidationError(
+        t('auth.otp_required'),
+        t('auth.enter_otp_the'),
       );
     }
 
     if (!GetUtils.isNumericOnly(otp)) {
-      return const AuthValidationError(
-        'Invalid OTP',
-        'OTP must contain only numbers.',
+      return AuthValidationError(
+        t('auth.invalid_otp'),
+        t('auth.otp_numbers_only'),
       );
     }
 
@@ -85,60 +70,52 @@ class AuthInputUtils {
     required String password,
   }) {
     if (!GetUtils.isEmail(email)) {
-      return const AuthValidationError(
-        'Email Required',
-        'Enter a valid email address.',
+      return AuthValidationError(
+        t('auth.email_required'),
+        t('auth.enter_valid_email'),
       );
     }
 
     if (password.trim().isEmpty) {
-      return const AuthValidationError(
-        'Password Required',
-        'Enter your password.',
+      return AuthValidationError(
+        t('auth.password_required'),
+        t('auth.enter_password'),
       );
     }
 
     if (password.length < 6) {
-      return const AuthValidationError(
-        'Password Required',
-        'Password must be at least 6 characters.',
+      return AuthValidationError(
+        t('auth.password_required'),
+        t('auth.password_min'),
       );
     }
 
     return null;
   }
 
-  static AuthValidationError? validateSignup({
+  static AuthValidationError? validateRegistration({
     required String name,
     required String firm,
-    required String mobile,
-    required String email,
+    required String gst,
   }) {
     if (name.length < 3) {
-      return const AuthValidationError(
-        'Name Required',
-        'Enter dealer owner/contact name.',
+      return AuthValidationError(
+        t('auth.name_required'),
+        t('auth.enter_contact_name'),
       );
     }
 
     if (firm.length < 2) {
-      return const AuthValidationError(
-        'Firm Name Required',
-        'Enter shop/firm name.',
+      return AuthValidationError(
+        t('auth.firm_name_required'),
+        t('auth.enter_firm_name'),
       );
     }
 
-    if (!isValidMobile(mobile)) {
-      return const AuthValidationError(
-        'Mobile Required',
-        'Enter a valid 10 digit mobile number.',
-      );
-    }
-
-    if (email.isNotEmpty && !GetUtils.isEmail(email)) {
-      return const AuthValidationError(
-        'Invalid Email',
-        'Enter a valid email address or leave it blank.',
+    if (gst.isNotEmpty && !RegExp(r'^[0-9]{2}[A-Z0-9]{13}$').hasMatch(gst)) {
+      return AuthValidationError(
+        t('auth.invalid_gst'),
+        t('auth.enter_valid_gst'),
       );
     }
 
