@@ -4,6 +4,7 @@ import '../../../app/data/cache/json_cache_store.dart';
 import '../../../app/data/models/category_model.dart';
 import '../../../app/data/models/product_model.dart';
 import '../../../app/data/services/dealer_api_service.dart';
+import '../../../app/localization/localized_cache_key.dart';
 import '../utils/catalog_response_parser.dart';
 
 /// A page of catalog products plus whether more pages exist.
@@ -27,7 +28,7 @@ class CatalogRepository {
 
   /// Saved categories, or empty.
   Future<List<CategoryModel>> savedCategories() async {
-    final cached = await _cache.read(_categoriesKey);
+    final cached = await _cache.read(localizedCacheKey(_categoriesKey));
 
     return cached == null ? const [] : CatalogResponseParser.parseCategories(cached);
   }
@@ -36,7 +37,7 @@ class CatalogRepository {
   Future<List<CategoryModel>> loadCategories({bool fresh = false}) async {
     final response = await _api.categories(fresh: fresh);
 
-    unawaited(_cache.write(_categoriesKey, response));
+    unawaited(_cache.write(localizedCacheKey(_categoriesKey), response));
 
     return CatalogResponseParser.parseCategories(response);
   }
@@ -74,5 +75,6 @@ class CatalogRepository {
     );
   }
 
-  String _productsKey(int categoryId) => 'dealer_catalog_products_$categoryId';
+  String _productsKey(int categoryId) =>
+      localizedCacheKey('dealer_catalog_products_$categoryId');
 }

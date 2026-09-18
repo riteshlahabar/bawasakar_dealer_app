@@ -7,6 +7,7 @@ import '../../../app/data/models/category_model.dart';
 import '../../../app/data/models/homepage_model.dart';
 import '../../../app/data/models/product_model.dart';
 import '../../../app/data/services/dealer_api_service.dart';
+import '../../../app/localization/localized_cache_key.dart';
 import '../utils/home_response_parser.dart';
 
 class HomeController extends GetxController {
@@ -75,7 +76,7 @@ class HomeController extends GetxController {
 
     try {
       if (!fresh && sections.isEmpty && products.isEmpty) {
-        final cached = await _cache.read(_homepageCacheKey);
+        final cached = await _cache.read(localizedCacheKey(_homepageCacheKey));
 
         if (cached != null) {
           _applyHomepage(cached);
@@ -90,7 +91,7 @@ class HomeController extends GetxController {
 
       _applyHomepage(homepageResponse);
 
-      unawaited(_cache.write(_homepageCacheKey, homepageResponse));
+      unawaited(_cache.write(localizedCacheKey(_homepageCacheKey), homepageResponse));
 
       // If admin has categories but has not configured product rows yet,
       // load catalog products as fallback.
