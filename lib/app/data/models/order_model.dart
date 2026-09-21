@@ -96,6 +96,10 @@ class OrderModel {
     return delivered == null || DateTime.now().difference(delivered).inDays <= returnWindowDays;
   }
 
+  /// Self-service cancel is only offered before the order is approved into
+  /// production — once packing starts, only admin can cancel it.
+  bool get canCancel => status == 'salesman_review' || status == 'admin_review';
+
   /// Search by order number, product name or status.
   bool matches(String term) {
     final query = term.toLowerCase();

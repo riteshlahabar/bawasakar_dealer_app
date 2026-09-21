@@ -8,6 +8,7 @@ import '../../../app/widgets/loading_view.dart';
 import '../controllers/orders_controller.dart';
 import '../utils/order_filter.dart';
 import 'widgets/buy_again_list.dart';
+import 'widgets/cancel_order_sheet.dart';
 import 'widgets/order_card.dart';
 import 'widgets/order_period_button.dart';
 import 'widgets/return_request_sheet.dart';
@@ -127,6 +128,7 @@ class OrdersView extends GetView<OrdersController> {
                             arguments: order.invoiceId > 0 ? order.invoiceId : null,
                           )
                       : null,
+                  onCancel: order.canCancel ? () => CancelOrderSheet.show(order, (reason) => controller.cancelOrder(order, reason)) : null,
                 );
               },
             ),

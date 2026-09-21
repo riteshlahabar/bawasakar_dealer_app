@@ -18,6 +18,7 @@ class OrderCard extends StatelessWidget {
     this.onBuyAgain,
     this.onReturn,
     this.onInvoice,
+    this.onCancel,
   });
 
   final OrderModel order;
@@ -26,6 +27,7 @@ class OrderCard extends StatelessWidget {
   final VoidCallback? onBuyAgain;
   final VoidCallback? onReturn;
   final VoidCallback? onInvoice;
+  final VoidCallback? onCancel;
 
   static final _money = NumberFormat.decimalPattern('en_IN');
 
@@ -104,6 +106,7 @@ class OrderCard extends StatelessWidget {
                   if (onBuyAgain != null) _action(t('common.buy_again'), Icons.replay_rounded, onBuyAgain!),
                   if (onReturn != null) _action(t('orders.return'), Icons.assignment_return_outlined, onReturn!),
                   if (onInvoice != null) _action(t('orders.invoice'), Icons.description_outlined, onInvoice!),
+                  if (onCancel != null) _action(t('orders.cancel_order'), Icons.close_rounded, onCancel!, danger: true),
                 ],
               ),
             ],
@@ -124,7 +127,7 @@ class OrderCard extends StatelessWidget {
     };
   }
 
-  Widget _action(String label, IconData icon, VoidCallback onTap, {bool filled = false}) {
+  Widget _action(String label, IconData icon, VoidCallback onTap, {bool filled = false, bool danger = false}) {
     const padding = EdgeInsets.symmetric(horizontal: 12);
     const size = Size(0, 34);
     const textStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.w600);
@@ -140,7 +143,13 @@ class OrderCard extends StatelessWidget {
             )
           : OutlinedButton.icon(
               onPressed: onTap,
-              style: OutlinedButton.styleFrom(minimumSize: size, padding: padding, textStyle: textStyle),
+              style: OutlinedButton.styleFrom(
+                minimumSize: size,
+                padding: padding,
+                textStyle: textStyle,
+                foregroundColor: danger ? AppColors.danger : null,
+                side: danger ? const BorderSide(color: AppColors.danger) : null,
+              ),
               icon: Icon(icon, size: 16),
               label: Text(label),
             ),

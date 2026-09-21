@@ -133,6 +133,10 @@ Future<Map<String, dynamic>> categories({
     });
   }
 
+  Future<Map<String, dynamic>> cancelOrder(int orderId, String reason) {
+    return _client.postJson(ApiConfig.dealerOrderCancel(orderId), {'reason': reason.trim()});
+  }
+
   /// False for accounts created by mobile OTP that never set a password.
   Future<bool> hasPassword() async {
     final response = await _client.getJson(ApiConfig.changePassword);

@@ -104,6 +104,19 @@ class OrdersController extends GetxController {
     }
   }
 
+  /// Cancels this order; the server re-checks it is still before packing.
+  Future<bool> cancelOrder(OrderModel order, String reason) async {
+    try {
+      await _api.cancelOrder(order.id, reason);
+      Get.snackbar(t('orders.order_cancelled'), t('orders.order_cancelled_message', {'order': order.orderNo}));
+      await loadOrders();
+      return true;
+    } catch (error) {
+      Get.snackbar(t('orders.cancel_order'), error.toString());
+      return false;
+    }
+  }
+
   List<dynamic> _extractList(dynamic value, List<String> preferredKeys) {
     if (value is List) return value;
     if (value is Map) {

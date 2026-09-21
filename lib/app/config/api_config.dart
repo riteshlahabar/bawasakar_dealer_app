@@ -51,6 +51,7 @@ class ApiConfig {
   static const String changePassword = '/dealer/change-password';
 
   static String dealerOrder(int id) => '/dealer/orders/$id';
+  static String dealerOrderCancel(int id) => '/dealer/orders/$id/cancel';
   static String dealerAddress(int id) => '/dealer/addresses/$id';
 
   // --- Outstanding & credit -------------------------------------------------
