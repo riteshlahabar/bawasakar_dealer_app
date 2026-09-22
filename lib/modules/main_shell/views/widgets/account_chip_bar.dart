@@ -5,30 +5,41 @@ import '../../../../app/localization/t.dart';
 import '../../../../app/routes/app_routes.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../profile/controllers/profile_controller.dart';
+import '../../controllers/main_shell_controller.dart';
 
 /// Amazon-style row of outlined chips for every account menu item.
 class AccountChipBar extends StatelessWidget {
   const AccountChipBar({super.key, this.currentRoute});
 
-  /// Route of the menu screen being shown; its chip is highlighted.
+  /// Route of the menu screen being shown; its chip is highlighted. The
+  /// Order History tab has no route of its own, so it passes
+  /// [orderHistorySentinel] here instead.
   final String? currentRoute;
 
   static const _logoutKey = 'menu.logout';
 
+  /// Not a real route — only used to match [currentRoute] so the Order
+  /// History chip highlights itself while that tab is showing.
+  static const orderHistorySentinel = 'order-history-tab';
+
+  /// Index of the Menu (☰) tab in [MainShellController.titles].
+  static const _orderHistoryTabIndex = 4;
+
   /// Labels are translation keys; the chip resolves them at build time so a
   /// language change redraws the bar without touching this list.
-  static const _items = <({String label, String? route})>[
-    (label: 'menu.account', route: AppRoutes.account),
-    (label: 'menu.outstanding', route: AppRoutes.outstanding),
-    (label: 'menu.payments', route: AppRoutes.payments),
-    (label: 'menu.invoices', route: AppRoutes.invoices),
-    (label: 'menu.returns', route: AppRoutes.returns),
-    (label: 'menu.reports', route: AppRoutes.reports),
-    (label: 'menu.notifications', route: AppRoutes.notifications),
-    (label: 'menu.support', route: AppRoutes.support),
-    (label: 'menu.change_password', route: AppRoutes.changePassword),
-    (label: 'menu.language', route: AppRoutes.language),
-    (label: _logoutKey, route: null),
+  static const _items = <({String label, String? route, int? tabIndex})>[
+    (label: 'menu.order_history', route: orderHistorySentinel, tabIndex: _orderHistoryTabIndex),
+    (label: 'menu.account', route: AppRoutes.account, tabIndex: null),
+    (label: 'menu.outstanding', route: AppRoutes.outstanding, tabIndex: null),
+    (label: 'menu.payments', route: AppRoutes.payments, tabIndex: null),
+    (label: 'menu.invoices', route: AppRoutes.invoices, tabIndex: null),
+    (label: 'menu.returns', route: AppRoutes.returns, tabIndex: null),
+    (label: 'menu.reports', route: AppRoutes.reports, tabIndex: null),
+    (label: 'menu.notifications', route: AppRoutes.notifications, tabIndex: null),
+    (label: 'menu.support', route: AppRoutes.support, tabIndex: null),
+    (label: 'menu.change_password', route: AppRoutes.changePassword, tabIndex: null),
+    (label: 'menu.language', route: AppRoutes.language, tabIndex: null),
+    (label: _logoutKey, route: null, tabIndex: null),
   ];
 
   @override
@@ -53,7 +64,7 @@ class AccountChipBar extends StatelessWidget {
     );
   }
 
-  Widget _chip(({String label, String? route}) item) {
+  Widget _chip(({String label, String? route, int? tabIndex}) item) {
     final danger = item.label == _logoutKey;
     final selected = item.route != null && item.route == currentRoute;
     final borderColor = selected
@@ -82,7 +93,17 @@ class AccountChipBar extends StatelessWidget {
     );
   }
 
-  void _open(({String label, String? route}) item) {
+  void _open(({String label, String? route, int? tabIndex}) item) {
+    final tabIndex = item.tabIndex;
+    if (tabIndex != null) {
+      if (item.route == currentRoute) return;
+      Get.until((page) => page.settings.name == AppRoutes.main);
+      if (Get.isRegistered<MainShellController>()) {
+        Get.find<MainShellController>().changeTab(tabIndex);
+      }
+      return;
+    }
+
     final route = item.route;
     if (route != null) {
       if (route == currentRoute) return;

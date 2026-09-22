@@ -21,6 +21,7 @@ class OrderItemsCard extends StatelessWidget {
 
     return TrackingSectionCard(
       title: '${t('tracking.items')} (${items.length})',
+      icon: Icons.shopping_bag_rounded,
       child: items.isEmpty
           ? Text(t('common.no_items'), style: TextStyle(color: AppColors.textSecondary, fontSize: 12.5))
           : Column(

@@ -21,6 +21,19 @@ class TrackingProgressBar extends StatelessWidget {
     'delivered': Icons.home_rounded,
   };
 
+  /// Each step gets the same colour its status badge uses elsewhere in the
+  /// app, so the bar reads at a glance instead of one flat green line.
+  static const _colors = {
+    'placed': AppColors.primary,
+    'approved': AppColors.primary,
+    'packed': Color(0xFFB7791F),
+    'dispatched': Color(0xFF2972FF),
+    'out_for_delivery': Color(0xFF7C3AED),
+    'delivered': AppColors.success,
+  };
+
+  Color _colorFor(String key) => cancelled ? AppColors.danger : (_colors[key] ?? AppColors.primary);
+
   @override
   Widget build(BuildContext context) {
     if (stages.isEmpty) {
@@ -28,7 +41,6 @@ class TrackingProgressBar extends StatelessWidget {
     }
 
     final current = stages.lastIndexWhere((stage) => stage.done);
-    final activeColor = cancelled ? AppColors.danger : AppColors.primary;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,16 +49,22 @@ class TrackingProgressBar extends StatelessWidget {
           Expanded(
             child: Column(
               children: [
-                Row(
-                  children: [
-                    Expanded(child: _line(i > 0 && stages[i].done ? activeColor : (i == 0 ? Colors.transparent : AppColors.border))),
-                    _dot(stages[i], i == current, activeColor),
-                    Expanded(
-                      child: _line(i == stages.length - 1
-                          ? Colors.transparent
-                          : (stages[i + 1].done ? activeColor : AppColors.border)),
-                    ),
-                  ],
+                // Fixed height so the connecting line sits at the same Y for
+                // every stage — the current stage's dot is bigger, and without
+                // this each row sizes to its own dot, breaking the line.
+                SizedBox(
+                  height: 34,
+                  child: Row(
+                    children: [
+                      Expanded(child: _line(i > 0 && stages[i].done ? _colorFor(stages[i].key) : (i == 0 ? Colors.transparent : AppColors.border))),
+                      _dot(stages[i], i == current, _colorFor(stages[i].key)),
+                      Expanded(
+                        child: _line(i == stages.length - 1
+                            ? Colors.transparent
+                            : (stages[i + 1].done ? _colorFor(stages[i + 1].key) : AppColors.border)),
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(

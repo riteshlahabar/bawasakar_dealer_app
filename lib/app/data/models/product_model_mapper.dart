@@ -90,6 +90,62 @@ class ProductModelMapper {
       isTopSelling: _asBool(json['is_top_selling']),
 
       isNewArrival: _asBool(json['is_new_arrival']),
+
+      variants: _variantOptions(json),
+
+      additionalInfo: _additionalInfo(json),
+
+      careInstructions: json['care_instructions']?.toString() ?? '',
+    );
+  }
+
+  static List<ProductInfoRow> _additionalInfo(Map<String, dynamic> json) {
+    final rows = json['additional_info'];
+
+    if (rows is! List) {
+      return const [];
+    }
+
+    return rows
+        .whereType<Map>()
+        .map((row) => ProductInfoRow(
+              label: row['label']?.toString().trim() ?? '',
+              value: row['value']?.toString().trim() ?? '',
+            ))
+        .where((row) => row.label.isNotEmpty || row.value.isNotEmpty)
+        .toList();
+  }
+
+  /// Every pack size on the payload, so the product detail page can offer a
+  /// selector — not just the one [_mainVariant] picked for display.
+  static List<ProductVariantOption> _variantOptions(Map<String, dynamic> json) {
+    final variants = json['variants'];
+
+    if (variants is! List) {
+      return const [];
+    }
+
+    return variants
+        .whereType<Map>()
+        .map((item) => _variantOption(Map<String, dynamic>.from(item)))
+        .where((variant) => variant.id > 0)
+        .toList();
+  }
+
+  static ProductVariantOption _variantOption(Map<String, dynamic> variant) {
+    final unitsPerCase = _asDouble(variant['units_per_case']).round().clamp(1, 100000).toInt();
+    final dealerPrice = _asDouble(variant['dealer_price']);
+    final mrp = _asDouble(variant['mrp']);
+    final serverCasePrice = _asDouble(variant['dealer_case_price']);
+
+    return ProductVariantOption(
+      id: _asInt(variant['id']),
+      name: (variant['name'] ?? variant['display_name'] ?? variant['value'])?.toString() ?? '',
+      unitsPerCase: unitsPerCase,
+      casePrice: serverCasePrice > 0 ? serverCasePrice : dealerPrice * unitsPerCase,
+      caseMrp: mrp * unitsPerCase,
+      availableStock: variant['available_stock'] == null ? null : _asDouble(variant['available_stock']),
+      isDefault: _asBool(variant['is_default']),
     );
   }
 

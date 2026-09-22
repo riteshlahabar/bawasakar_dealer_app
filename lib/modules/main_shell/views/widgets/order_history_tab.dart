@@ -12,7 +12,7 @@ class OrderHistoryTab extends StatelessWidget {
     return const Column(
       children: [
         Expanded(child: OrdersView(history: true)),
-        AccountChipBar(),
+        AccountChipBar(currentRoute: AccountChipBar.orderHistorySentinel),
       ],
     );
   }

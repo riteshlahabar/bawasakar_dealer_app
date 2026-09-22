@@ -37,7 +37,7 @@ class OrdersView extends GetView<OrdersController> {
                   textInputAction: TextInputAction.search,
                   decoration: InputDecoration(
                     hintText: history ? t('orders.search_history_hint') : t('orders.search_hint'),
-                    prefixIcon: const Icon(Icons.search_rounded),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                   ),
                 ),
               ),
@@ -118,8 +118,7 @@ class OrdersView extends GetView<OrdersController> {
                 return OrderCard(
                   order: order,
                   onTrack: () => Get.toNamed<void>(AppRoutes.orderTracking, arguments: order.id),
-                  // Same screen, scrolled to the items section.
-                  onDetails: () => Get.toNamed<void>(AppRoutes.orderTracking, arguments: {'order_id': order.id, 'focus': 'items'}),
+                  onDetails: () => Get.toNamed<void>(AppRoutes.orderDetails, arguments: order.id),
                   onBuyAgain: history && order.items.isNotEmpty ? () => controller.buyAgain(order) : null,
                   onReturn: order.canReturn ? () => ReturnRequestSheet.show(order, (reason) => controller.requestReturn(order, reason)) : null,
                   onInvoice: order.hasInvoice

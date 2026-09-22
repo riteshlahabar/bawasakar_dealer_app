@@ -41,6 +41,27 @@ class OrderModel {
 
   int get itemCount => items.length;
 
+  /// One line per item: "Basmati Rice (1 KG) × 3" — pack size and quantity,
+  /// not just the bare product name.
+  List<String> get itemSummaries {
+    return items
+        .map((item) {
+          final product = item['product'];
+          final name = (product is Map ? product['name'] : item['product_name'])?.toString().trim() ?? '';
+          if (name.isEmpty) return '';
+
+          final variant = item['variant_name']?.toString().trim() ?? '';
+          final packQuantity = double.tryParse(item['pack_quantity']?.toString() ?? '') ?? 0;
+          final quantity = packQuantity > 0 ? packQuantity : (double.tryParse(item['quantity']?.toString() ?? '') ?? 0);
+          final quantityLabel = quantity == quantity.roundToDouble() ? quantity.toInt().toString() : quantity.toString();
+
+          final label = variant.isEmpty ? name : '$name ($variant)';
+          return quantity > 0 ? '$label × $quantityLabel' : label;
+        })
+        .where((line) => line.isNotEmpty)
+        .toList();
+  }
+
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     final items = json['items'] is List
         ? (json['items'] as List).whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList()

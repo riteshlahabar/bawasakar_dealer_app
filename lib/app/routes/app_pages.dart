@@ -26,6 +26,7 @@ import '../../modules/main_shell/views/widgets/menu_shell.dart';
 import '../../modules/notifications/bindings/notifications_binding.dart';
 import '../../modules/notifications/views/notifications_view.dart';
 import '../../modules/order_tracking/bindings/order_tracking_binding.dart';
+import '../../modules/order_tracking/views/order_details_view.dart';
 import '../../modules/order_tracking/views/order_tracking_view.dart';
 import '../../modules/outstanding/bindings/outstanding_binding.dart';
 import '../../modules/outstanding/views/outstanding_view.dart';
@@ -57,10 +58,11 @@ class AppPages {
     GetPage(name: AppRoutes.registrationDetails, page: () => const RegistrationDetailsView(), binding: RegistrationBinding()),
     GetPage(name: AppRoutes.main, page: () => const MainShellView(), binding: MainShellBinding()),
     GetPage(name: AppRoutes.productDetail, page: () => const ProductDetailView(), binding: ProductDetailBinding()),
-    GetPage(name: AppRoutes.cart, page: () => const CartView(), binding: CartBinding()),
+    GetPage(name: AppRoutes.cart, page: () => const CartPage(), binding: CartBinding()),
     GetPage(name: AppRoutes.checkout, page: () => const CheckoutView(), binding: CheckoutBinding()),
     GetPage(name: AppRoutes.addresses, page: () => const AddressesView(), binding: AddressesBinding()),
     GetPage(name: AppRoutes.orderTracking, page: () => const OrderTrackingView(), binding: OrderTrackingBinding()),
+    GetPage(name: AppRoutes.orderDetails, page: () => const OrderDetailsView(), binding: OrderTrackingBinding()),
 
     // Menu screens (Order History chips): MenuShell keeps the chips and the
     // bottom navigation bar visible. ProfileController lives in MainShellBinding.

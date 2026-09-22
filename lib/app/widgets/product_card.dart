@@ -61,48 +61,33 @@ class ProductCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, height: 1.25),
                   ),
+                  const SizedBox(height: 7),
+                  Text(
+                    product.caseLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                  ),
+                  if (product.caseMrp > product.casePrice)
+                    Text('₹${product.caseMrp.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, decoration: TextDecoration.lineThrough)),
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.star_rounded, color: Color(0xFFFFB321), size: 14),
-                      const SizedBox(width: 2),
-                      Text('4.8', style: TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
-                      const Spacer(),
-                      if (product.unit.isNotEmpty)
-                        Text(product.unit, style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary)),
-                    ],
-                  ),
-                  const SizedBox(height: 7),
-                  Row(
-                    children: [
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // Dealers buy by the case: price is for one full case.
-                            Text.rich(
+                        // Dealers buy by the case: price is for one full case.
+                        child: Text.rich(
+                          TextSpan(
+                            text: '₹${product.casePrice.toStringAsFixed(0)}',
+                            style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: AppColors.primary),
+                            children: [
                               TextSpan(
-                                text: '₹${product.casePrice.toStringAsFixed(0)}',
-                                style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w900, color: AppColors.primary),
-                                children: [
-                                  TextSpan(
-                                    text: ' ${t('catalog.per_case')}',
-                                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                                  ),
-                                ],
+                                text: ' ${t('catalog.per_case')}',
+                                style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            if (product.caseMrp > product.casePrice)
-                              Text('₹${product.caseMrp.toStringAsFixed(0)}', style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary, decoration: TextDecoration.lineThrough)),
-                            Text(
-                              product.caseLabel,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                            ),
-                          ],
+                            ],
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(

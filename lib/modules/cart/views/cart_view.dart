@@ -16,6 +16,21 @@ import 'widgets/empty_cart_view.dart';
 import 'widgets/saved_for_later_section.dart';
 import '../../../app/localization/t.dart';
 
+/// Cart pushed as its own screen (e.g. from the product detail page's cart
+/// icon) — needs its own Scaffold/AppBar since [CartView] itself has none
+/// (it relies on [MainShellView]'s Scaffold when shown as the Cart tab).
+class CartPage extends StatelessWidget {
+  const CartPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(t('cart.title'))),
+      body: const CartView(),
+    );
+  }
+}
+
 class CartView extends GetView<CartController> {
   const CartView({super.key});
 

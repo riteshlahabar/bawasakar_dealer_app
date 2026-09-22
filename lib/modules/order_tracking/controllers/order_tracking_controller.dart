@@ -1,4 +1,3 @@
-import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../../app/data/models/order_detail_model.dart';
@@ -8,8 +7,9 @@ import '../../../app/localization/t.dart';
 
 /// Loads the delivery timeline and the full order for one order.
 ///
-/// The order id arrives as a route argument (an int, or
-/// `{'order_id': id, 'focus': 'items'}` from the "Details" button).
+/// Shared by the Track Order screen (progress + timeline) and the Order
+/// Details screen (items + price breakdown) — both need the same data, just
+/// laid out differently, so one controller serves both routes.
 class OrderTrackingController extends GetxController {
   OrderTrackingController(this._api);
 
@@ -20,34 +20,12 @@ class OrderTrackingController extends GetxController {
   final isLoading = false.obs;
   final error = ''.obs;
 
-  /// Anchors the items section so "Details" can scroll straight to it.
-  final itemsKey = GlobalKey();
-
-  late final int orderId = _resolveOrderId();
-
-  late final bool _focusItems = Get.arguments is Map && Get.arguments['focus'] == 'items';
-  bool _focusConsumed = false;
+  late final int orderId = Get.arguments is int ? Get.arguments as int : 0;
 
   @override
   void onInit() {
     load();
     super.onInit();
-  }
-
-  /// True once, when the screen was opened to show the items.
-  bool consumeItemsFocus() {
-    if (!_focusItems || _focusConsumed) return false;
-    _focusConsumed = true;
-    return true;
-  }
-
-  int _resolveOrderId() {
-    final argument = Get.arguments;
-    if (argument is int) return argument;
-    if (argument is Map && argument['order_id'] != null) {
-      return int.tryParse(argument['order_id'].toString()) ?? 0;
-    }
-    return 0;
   }
 
   Future<void> load() async {

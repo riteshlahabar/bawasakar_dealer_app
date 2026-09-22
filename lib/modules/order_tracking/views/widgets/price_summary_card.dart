@@ -20,6 +20,7 @@ class PriceSummaryCard extends StatelessWidget {
 
     return TrackingSectionCard(
       title: t('cart.price_details'),
+      icon: Icons.receipt_long_rounded,
       child: Column(
         children: [
           _amount(t('invoice.subtotal'), detail.subtotal),

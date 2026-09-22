@@ -21,6 +21,7 @@ class AppRoutes {
   static const payments = '/payments';
   static const notifications = '/notifications';
   static const orderTracking = '/order-tracking';
+  static const orderDetails = '/order-details';
   static const invoices = '/invoices';
   static const invoiceDetail = '/invoices/detail';
   static const language = '/language';

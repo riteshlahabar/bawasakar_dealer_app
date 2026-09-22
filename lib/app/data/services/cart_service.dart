@@ -44,8 +44,15 @@ class CartService extends GetxService {
     _restore();
   }
 
+  /// Two lines are "the same product" only when both the product and the
+  /// chosen pack size match — otherwise two variants of one product would
+  /// wrongly collapse into a single cart line at whichever price was added
+  /// first.
+  bool _samePick(ProductModel a, ProductModel b) =>
+      a.id == b.id && a.mainVariantId == b.mainVariantId;
+
   void add(ProductModel product) {
-    final index = items.indexWhere((item) => item.product.id == product.id);
+    final index = items.indexWhere((item) => _samePick(item.product, product));
     if (index >= 0) {
       items[index].quantity++;
       items.refresh();
@@ -55,7 +62,7 @@ class CartService extends GetxService {
   }
 
   void decrease(ProductModel product) {
-    final index = items.indexWhere((item) => item.product.id == product.id);
+    final index = items.indexWhere((item) => _samePick(item.product, product));
     if (index < 0) return;
     if (items[index].quantity <= 1) {
       items.removeAt(index);
@@ -66,23 +73,23 @@ class CartService extends GetxService {
   }
 
   void remove(ProductModel product) {
-    items.removeWhere((item) => item.product.id == product.id);
+    items.removeWhere((item) => _samePick(item.product, product));
   }
 
   void saveForLater(ProductModel product) {
     remove(product);
-    if (!savedForLater.any((saved) => saved.id == product.id)) {
+    if (!savedForLater.any((saved) => _samePick(saved, product))) {
       savedForLater.add(product);
     }
   }
 
   void moveToCart(ProductModel product) {
-    savedForLater.removeWhere((saved) => saved.id == product.id);
+    savedForLater.removeWhere((saved) => _samePick(saved, product));
     add(product);
   }
 
   void removeSaved(ProductModel product) {
-    savedForLater.removeWhere((saved) => saved.id == product.id);
+    savedForLater.removeWhere((saved) => _samePick(saved, product));
   }
 
   /// Empties the cart after an order; "Save for later" is kept.

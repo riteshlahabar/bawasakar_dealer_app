@@ -7,8 +7,9 @@ import 'order_status_chip.dart';
 import 'stacked_thumbnails.dart';
 import '../../../../app/localization/t.dart';
 
-/// One order: coloured status headline, stacked product images, total, and
-/// the actions that apply to its status.
+/// One order: coloured status headline, stacked product images (with pack
+/// size and quantity, not just the name), and the actions that apply to it,
+/// laid out as a full-width grid instead of a loosely wrapped row.
 class OrderCard extends StatelessWidget {
   const OrderCard({
     super.key,
@@ -30,11 +31,22 @@ class OrderCard extends StatelessWidget {
   final VoidCallback? onCancel;
 
   static final _money = NumberFormat.decimalPattern('en_IN');
+  static const _actionsPerRow = 3;
 
   @override
   Widget build(BuildContext context) {
     final style = OrderStatusChip.styleFor(order.status.toLowerCase());
+    final summaries = order.itemSummaries;
     final itemsLabel = order.itemCount == 0 ? t('orders.order_items') : (order.itemCount == 1 ? t('common.item_count_one', {'n': '${order.itemCount}'}) : t('common.item_count_many', {'n': '${order.itemCount}'}));
+
+    final actions = [
+      _action(t('orders.track_short'), Icons.local_shipping_outlined, onTrack, filled: true),
+      _action(t('orders.details'), Icons.receipt_long_outlined, onDetails),
+      if (onBuyAgain != null) _action(t('common.buy_again'), Icons.replay_rounded, onBuyAgain!),
+      if (onReturn != null) _action(t('orders.return'), Icons.assignment_return_outlined, onReturn!),
+      if (onInvoice != null) _action(t('orders.invoice'), Icons.description_outlined, onInvoice!),
+      if (onCancel != null) _action(t('orders.cancel_order'), Icons.close_rounded, onCancel!, danger: true),
+    ];
 
     return Material(
       color: Colors.white,
@@ -46,7 +58,7 @@ class OrderCard extends StatelessWidget {
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.border),
+            border: Border.all(color: AppColors.primary.withValues(alpha: .35)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,49 +78,57 @@ class OrderCard extends StatelessWidget {
                   Text('₹${_money.format(order.total)}', style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
                 ],
               ),
-              const SizedBox(height: 2),
-              Text(
-                '${order.orderNo} · ${order.displayDate}',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+              const SizedBox(height: 3),
+              Row(
+                children: [
+                  const Icon(Icons.receipt_long_rounded, size: 12, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      '${order.orderNo} · ${order.displayDate}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontSize: 11.5, color: AppColors.textSecondary),
+                    ),
+                  ),
+                ],
               ),
               const SizedBox(height: 12),
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   StackedThumbnails(urls: order.imageUrls),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        if (order.productNames.isNotEmpty)
-                          Text(
-                            order.productNames.join(', '),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
-                          ),
-                        const SizedBox(height: 2),
-                        Text(itemsLabel, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
-                      ],
+                      children: summaries.isEmpty
+                          ? [Text(itemsLabel, style: const TextStyle(fontSize: 12.5, color: AppColors.textSecondary))]
+                          : [
+                              for (final line in summaries.take(2))
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 3),
+                                  child: Text(
+                                    line,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              if (summaries.length > 2)
+                                Text(
+                                  '+${summaries.length - 2} more',
+                                  style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w700),
+                                ),
+                            ],
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  _action(t('orders.track_short'), Icons.local_shipping_outlined, onTrack, filled: true),
-                  _action(t('orders.details'), Icons.receipt_long_outlined, onDetails),
-                  if (onBuyAgain != null) _action(t('common.buy_again'), Icons.replay_rounded, onBuyAgain!),
-                  if (onReturn != null) _action(t('orders.return'), Icons.assignment_return_outlined, onReturn!),
-                  if (onInvoice != null) _action(t('orders.invoice'), Icons.description_outlined, onInvoice!),
-                  if (onCancel != null) _action(t('orders.cancel_order'), Icons.close_rounded, onCancel!, danger: true),
-                ],
-              ),
+              Divider(height: 1, color: AppColors.border),
+              const SizedBox(height: 12),
+              _actionsGrid(actions),
             ],
           ),
         ),
@@ -127,31 +147,58 @@ class OrderCard extends StatelessWidget {
     };
   }
 
+  /// Rows of equal-width buttons that always cover the card's full width,
+  /// instead of a `Wrap` that leaves an uneven gap on the last line.
+  Widget _actionsGrid(List<Widget> actions) {
+    final rows = <Widget>[];
+
+    for (var i = 0; i < actions.length; i += _actionsPerRow) {
+      final rowItems = actions.sublist(i, (i + _actionsPerRow).clamp(0, actions.length));
+
+      if (rows.isNotEmpty) rows.add(const SizedBox(height: 8));
+
+      rows.add(
+        Row(
+          children: [
+            for (var j = 0; j < rowItems.length; j++) ...[
+              if (j > 0) const SizedBox(width: 8),
+              Expanded(child: rowItems[j]),
+            ],
+          ],
+        ),
+      );
+    }
+
+    return Column(children: rows);
+  }
+
   Widget _action(String label, IconData icon, VoidCallback onTap, {bool filled = false, bool danger = false}) {
-    const padding = EdgeInsets.symmetric(horizontal: 12);
-    const size = Size(0, 34);
-    const textStyle = TextStyle(fontSize: 12, fontWeight: FontWeight.w600);
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 15),
+        const SizedBox(width: 5),
+        Flexible(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 11.5, fontWeight: FontWeight.w600))),
+      ],
+    );
 
     return SizedBox(
-      height: 34,
+      height: 36,
       child: filled
-          ? ElevatedButton.icon(
+          ? ElevatedButton(
               onPressed: onTap,
-              style: ElevatedButton.styleFrom(minimumSize: size, padding: padding, textStyle: textStyle),
-              icon: Icon(icon, size: 16),
-              label: Text(label),
+              style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 6)),
+              child: content,
             )
-          : OutlinedButton.icon(
+          : OutlinedButton(
               onPressed: onTap,
               style: OutlinedButton.styleFrom(
-                minimumSize: size,
-                padding: padding,
-                textStyle: textStyle,
+                padding: const EdgeInsets.symmetric(horizontal: 6),
                 foregroundColor: danger ? AppColors.danger : null,
                 side: danger ? const BorderSide(color: AppColors.danger) : null,
               ),
-              icon: Icon(icon, size: 16),
-              label: Text(label),
+              child: content,
             ),
     );
   }

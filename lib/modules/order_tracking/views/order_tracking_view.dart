@@ -6,8 +6,6 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/widgets/empty_state.dart';
 import '../../../app/widgets/loading_view.dart';
 import '../controllers/order_tracking_controller.dart';
-import 'widgets/order_items_card.dart';
-import 'widgets/price_summary_card.dart';
 import 'widgets/tracking_header_card.dart';
 import 'widgets/tracking_info_grid.dart';
 import 'widgets/tracking_progress_bar.dart';
@@ -15,6 +13,8 @@ import 'widgets/tracking_section_card.dart';
 import 'widgets/tracking_timeline.dart';
 import '../../../app/localization/t.dart';
 
+/// Where is my order: status, the progress bar and the delivery timeline.
+/// Item-level and price-level information lives on the Order Details screen.
 class OrderTrackingView extends GetView<OrderTrackingController> {
   const OrderTrackingView({super.key});
 
@@ -41,15 +41,6 @@ class OrderTrackingView extends GetView<OrderTrackingController> {
 
         final detail = controller.detail.value;
 
-        if (detail != null && controller.consumeItemsFocus()) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            final target = controller.itemsKey.currentContext;
-            if (target != null) {
-              Scrollable.ensureVisible(target, duration: const Duration(milliseconds: 400), alignment: .05);
-            }
-          });
-        }
-
         return RefreshIndicator(
           color: AppColors.primary,
           onRefresh: controller.load,
@@ -61,6 +52,7 @@ class OrderTrackingView extends GetView<OrderTrackingController> {
               if (tracking.isCancelled) _cancelledBanner(),
               TrackingSectionCard(
                 title: t('tracking.progress'),
+                icon: Icons.route_rounded,
                 child: TrackingProgressBar(stages: tracking.stages, cancelled: tracking.isCancelled),
               ),
               const SizedBox(height: 12),
@@ -68,16 +60,11 @@ class OrderTrackingView extends GetView<OrderTrackingController> {
               const SizedBox(height: 12),
               TrackingSectionCard(
                 title: t('orders.tracking_history'),
+                icon: Icons.history_rounded,
                 child: TrackingTimeline(tracking: tracking, detail: detail),
               ),
-              if (detail != null) ...[
-                const SizedBox(height: 12),
-                KeyedSubtree(key: controller.itemsKey, child: OrderItemsCard(detail: detail)),
-                const SizedBox(height: 12),
-                PriceSummaryCard(detail: detail),
-              ],
               const SizedBox(height: 16),
-              _actions(hasInvoice: (detail?.invoiceNo ?? '').isNotEmpty),
+              _actions(),
             ],
           ),
         );
@@ -109,7 +96,7 @@ class OrderTrackingView extends GetView<OrderTrackingController> {
     );
   }
 
-  Widget _actions({required bool hasInvoice}) {
+  Widget _actions() {
     return Row(
       children: [
         Expanded(
@@ -119,16 +106,14 @@ class OrderTrackingView extends GetView<OrderTrackingController> {
             label: Text(t('support.need_help')),
           ),
         ),
-        if (hasInvoice) ...[
-          const SizedBox(width: 12),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () => Get.toNamed<void>(AppRoutes.invoices),
-              icon: const Icon(Icons.receipt_long_rounded, size: 18),
-              label: Text(t('invoice.view')),
-            ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: () => Get.toNamed<void>(AppRoutes.orderDetails, arguments: controller.orderId),
+            icon: const Icon(Icons.receipt_long_rounded, size: 18),
+            label: Text(t('tracking.view_details')),
           ),
-        ],
+        ),
       ],
     );
   }
