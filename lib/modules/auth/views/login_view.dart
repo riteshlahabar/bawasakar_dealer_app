@@ -16,8 +16,9 @@ class LoginView extends GetView<AuthController> {
   @override
   Widget build(BuildContext context) {
     return AuthScaffold(
-      title: t('auth.welcome_back'),
-      subtitle: t('auth.sign_in_subtitle'),
+      title: '',
+      subtitle: '',
+      showBranding: false,
       footer: AuthFooter(
         prompt: t('auth.new_dealer'),
         action: t('auth.register_firm'),

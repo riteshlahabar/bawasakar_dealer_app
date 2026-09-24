@@ -8,10 +8,12 @@ class SplashView extends GetView<SplashController> {
 
   @override
   Widget build(BuildContext context) {
+    // The splash artwork already carries the branding, so it fills the whole
+    // screen — status bar included — instead of a logo on a white ground.
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Center(
-        child: Image.asset('assets/images/app_logo.png', width: 130, height: 130),
+      body: SizedBox.expand(
+        child: Image.asset('assets/images/splash_screen.jpeg', fit: BoxFit.cover),
       ),
     );
   }

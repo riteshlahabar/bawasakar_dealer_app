@@ -74,7 +74,11 @@ class OrderItemsCard extends StatelessWidget {
               style: const TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800),
             ),
             Text(
-              'Price ₹${_money.format(item.unitPrice)}',
+              // Dealers buy by the case, so quote the case rate whenever the
+              // product actually comes in cases.
+              item.unitsPerCase > 1
+                  ? '₹${_money.format(item.casePrice)}/case'
+                  : 'Price ₹${_money.format(item.unitPrice)}',
               style: const TextStyle(fontSize: 10.5, color: AppColors.textSecondary),
             ),
           ],

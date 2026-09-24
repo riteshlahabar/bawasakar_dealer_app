@@ -24,7 +24,7 @@ class LoginModeSwitch extends StatelessWidget {
         () => Row(
           children: [
             _item(Icons.phone_iphone_rounded, t('auth.mobile_otp'), 0),
-            _item(Icons.alternate_email_rounded, t('auth.email'), 1),
+            _item(Icons.mail_outline_rounded, t('auth.email'), 1),
           ],
         ),
       ),

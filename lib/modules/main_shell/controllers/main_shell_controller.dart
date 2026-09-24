@@ -16,6 +16,14 @@ class MainShellController
   /// first time it is opened, instead of all five on app start.
   final visitedTabs = <int>{0};
 
+  /// Tabs opened before the current one, newest last. The phone's back button
+  /// walks back through them one step at a time instead of closing the app.
+  final _tabHistory = <int>[];
+
+  /// Keeps the history from growing without bound when the dealer toggles
+  /// between two tabs for a long time.
+  static const _maxHistory = 20;
+
   /// Translation keys, resolved in [currentTitle].
   final titles = const [
     'shell.dealer_store',
@@ -40,7 +48,30 @@ class MainShellController
     return t(titles[index]);
   }
 
+  /// Shows the tab opened before this one. Returns false when no earlier tab
+  /// is left, which is when the back button should leave the app.
+  bool goBackTab() {
+    if (_tabHistory.isEmpty) {
+      return false;
+    }
+
+    final previous = _tabHistory.removeLast();
+
+    visitedTabs.add(previous);
+    selectedIndex.value = previous;
+
+    return true;
+  }
+
   void changeTab(int index) {
+    if (index != selectedIndex.value) {
+      _tabHistory.add(selectedIndex.value);
+
+      if (_tabHistory.length > _maxHistory) {
+        _tabHistory.removeAt(0);
+      }
+    }
+
     final firstVisit = visitedTabs.add(index);
 
     selectedIndex.value = index;

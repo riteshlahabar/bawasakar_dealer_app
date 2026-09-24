@@ -37,16 +37,27 @@ class OrderItemDetailModel {
     );
   }
 
-  /// "2 cases · 50 units/case" for case packs, otherwise "Qty 3".
+  /// "2 cases × 50 units/case = 100 units" for case packs, otherwise "Qty 3".
+  /// Spelling the case size out matters because [quantity] is a count of
+  /// cases, not of units — without it the number reads as far too small.
   String get quantityLabel {
     final qty = _plain(quantity);
 
     if (unitsPerCase > 1) {
-      return t('common.cases_units', {'qty': quantity == 1 ? t('common.case_one', {'n': qty}) : t('common.case_many', {'n': qty}), 'units': _plain(unitsPerCase)});
+      return t('common.cases_units_total', {
+        'qty': quantity == 1
+            ? t('common.case_one', {'n': qty})
+            : t('common.case_many', {'n': qty}),
+        'units': _plain(unitsPerCase),
+        'total': _plain(quantity * unitsPerCase),
+      });
     }
 
     return t('common.qty', {'n': qty});
   }
+
+  /// Rate for one whole case — how dealers buy, and what the cart shows.
+  double get casePrice => unitPrice * (unitsPerCase <= 0 ? 1 : unitsPerCase);
 }
 
 /// Full order from the order detail endpoint.
@@ -68,6 +79,8 @@ class OrderDetailModel {
     this.items = const [],
     this.invoiceNo = '',
     this.dispatchNo = '',
+    this.availability = '',
+    this.availableOn = '',
   });
 
   final String orderNo;
@@ -86,6 +99,13 @@ class OrderDetailModel {
   final List<OrderItemDetailModel> items;
   final String invoiceNo;
   final String dispatchNo;
+
+  /// Salesman's stock answer while the order is still in their review:
+  /// `not_available`, `available_on`, or empty. Not an order status.
+  final String availability;
+
+  /// Raw timestamp the stock is expected, set only with `available_on`.
+  final String availableOn;
 
   factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'];
@@ -119,7 +139,27 @@ class OrderDetailModel {
           : const [],
       invoiceNo: invoice is Map ? (_text(invoice['invoice_no']) ?? '') : '',
       dispatchNo: dispatch == null ? '' : (_text(dispatch['dispatch_no']) ?? ''),
+      availability: _text(json['availability']) ?? '',
+      availableOn: _text(json['available_on']) ?? '',
     );
+  }
+
+  /// One line for the dealer, e.g. "Stock available on 25 Sep 2026, 10:00 AM"
+  /// or "Stock not available right now". Empty when nothing was marked.
+  String get availabilityLabel {
+    if (availability == 'available_on') {
+      final expected = DateTime.tryParse(availableOn)?.toLocal();
+
+      return expected == null
+          ? 'Stock available soon'
+          : 'Stock available on ${DateFormat('dd MMM yyyy, hh:mm a').format(expected)}';
+    }
+
+    if (availability == 'not_available') {
+      return 'Stock not available right now';
+    }
+
+    return '';
   }
 
   /// e.g. "14 Sep 2026".
@@ -130,7 +170,8 @@ class OrderDetailModel {
   }
 
   String get paymentMethodLabel => switch (paymentMethod.toLowerCase()) {
-        'cod' => t('common.cash_on_delivery'),
+        'cod' => t('checkout.cash_upi'),
+        'credit' => t('checkout.pay_later'),
         'upi' => 'UPI',
         'bank_transfer' => t('common.bank_transfer'),
         '' => '—',

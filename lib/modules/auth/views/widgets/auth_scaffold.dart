@@ -14,6 +14,7 @@ class AuthScaffold extends StatelessWidget {
     required this.child,
     this.footer,
     this.showBack = false,
+    this.showBranding = true,
   });
 
   final String title;
@@ -21,6 +22,9 @@ class AuthScaffold extends StatelessWidget {
   final Widget child;
   final Widget? footer;
   final bool showBack;
+
+  /// Passed straight to [AuthHeader]: login shows the artwork alone.
+  final bool showBranding;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +35,7 @@ class AuthScaffold extends StatelessWidget {
         body: ListView(
           padding: EdgeInsets.zero,
           children: [
-            AuthHeader(title: title, subtitle: subtitle, showBack: showBack),
+            AuthHeader(title: title, subtitle: subtitle, showBack: showBack, showBranding: showBranding),
             Container(
               transform: Matrix4.translationValues(0, -36, 0),
               margin: const EdgeInsets.symmetric(horizontal: 18),

@@ -37,16 +37,16 @@ class CheckoutView extends GetView<CheckoutController> {
                   child: Obx(
                     () => RadioGroup<String>(
                       groupValue: controller.paymentMethod.value,
-                      onChanged: (value) => controller.paymentMethod.value = value ?? 'Pay Later / Credit',
+                      onChanged: (value) => controller.paymentMethod.value = value ?? 'credit',
                       child: Column(
                         children: [
                           RadioListTile<String>(
-                            value: 'Pay Later / Credit',
+                            value: 'credit',
                             activeColor: AppColors.primary,
                             title: Text(t('checkout.pay_later'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                           ),
                           RadioListTile<String>(
-                            value: 'Cash / UPI Collection',
+                            value: 'cod',
                             activeColor: AppColors.primary,
                             title: Text(t('checkout.cash_upi'), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
                           ),

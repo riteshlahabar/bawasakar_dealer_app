@@ -45,6 +45,12 @@ class OrderDetailsView extends GetView<OrderTrackingController> {
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
             children: [
               TrackingHeaderCard(tracking: tracking, detail: detail),
+              // The salesman's stock answer, while the order is still in
+              // their review — a note, not a step of the order flow.
+              if (detail.availabilityLabel.isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _availabilityNote(detail.availability, detail.availabilityLabel),
+              ],
               const SizedBox(height: 12),
               OrderItemsCard(detail: detail),
               const SizedBox(height: 12),
@@ -55,6 +61,43 @@ class OrderDetailsView extends GetView<OrderTrackingController> {
           ),
         );
       }),
+    );
+  }
+
+  /// Amber when stock is unavailable, brand green when a date is promised.
+  Widget _availabilityNote(String availability, String label) {
+    final waiting = availability == 'available_on';
+    final color = waiting ? AppColors.primary : AppColors.orange;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            waiting
+                ? Icons.event_available_outlined
+                : Icons.remove_shopping_cart_outlined,
+            size: 16,
+            color: color,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

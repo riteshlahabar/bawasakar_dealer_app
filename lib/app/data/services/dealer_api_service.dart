@@ -126,10 +126,29 @@ Future<Map<String, dynamic>> categories({
 
   Future<Map<String, dynamic>> orders() => _client.getJson(ApiConfig.dealerOrders);
 
-  Future<Map<String, dynamic>> createOrder(List<Map<String, dynamic>> items, {String? notes}) {
+  /// Places a dealer order. Delivery details and payment go in their own
+  /// fields — the server stores them on the order — so `notes` carries only
+  /// what the dealer actually typed.
+  Future<Map<String, dynamic>> createOrder(
+    List<Map<String, dynamic>> items, {
+    String? notes,
+    AddressModel? address,
+    String? paymentMethod,
+  }) {
     return _client.postJson(ApiConfig.dealerOrders, {
       'items': items,
       if (notes != null && notes.trim().isNotEmpty) 'notes': notes.trim(),
+      if (paymentMethod != null && paymentMethod.trim().isNotEmpty)
+        'payment_method': paymentMethod.trim(),
+      if (address != null) ...{
+        'contact_name': address.name,
+        'contact_mobile': address.mobile,
+        'address_line1': address.line1,
+        if (address.line2.isNotEmpty) 'address_line2': address.line2,
+        if (address.city.isNotEmpty) 'city': address.city,
+        if (address.state.isNotEmpty) 'state': address.state,
+        if (address.pincode.isNotEmpty) 'pincode': address.pincode,
+      },
     });
   }
 

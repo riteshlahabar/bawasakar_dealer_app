@@ -15,7 +15,8 @@ class CheckoutController extends GetxController {
   final AddressSelectionService addresses;
 
   final notes = TextEditingController();
-  final paymentMethod = 'Pay Later / Credit'.obs;
+  // The API's own codes, not display text — the labels come from t().
+  final paymentMethod = 'credit'.obs;
   final isLoading = false.obs;
 
   @override
@@ -32,14 +33,16 @@ class CheckoutController extends GetxController {
     isLoading.value = true;
     try {
       final address = addresses.selected.value;
-      final noteText = [
-        'Dealer order from mobile app',
-        'Payment: ${paymentMethod.value}',
-        if (address != null) 'Deliver to: ${[address.name, address.mobile, address.fullAddress].where((part) => part.isNotEmpty).join(', ')}',
-        notes.text.trim(),
-      ].where((line) => line.isNotEmpty).join('\n');
 
-      await _api.createOrder(cart.toOrderItems(), notes: noteText);
+      // Delivery address and payment method now travel in their own fields —
+      // the order columns exist for them — so the note is only what the
+      // dealer typed, and stays empty when they typed nothing.
+      await _api.createOrder(
+        cart.toOrderItems(),
+        notes: notes.text.trim(),
+        address: address,
+        paymentMethod: paymentMethod.value,
+      );
       cart.clear();
       Get.offAllNamed(AppRoutes.main);
       Get.snackbar(t('checkout.order_submitted'), t('checkout.sent_to_salesman'));

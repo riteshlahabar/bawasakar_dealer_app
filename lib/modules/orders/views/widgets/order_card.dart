@@ -125,6 +125,12 @@ class OrderCard extends StatelessWidget {
                   ),
                 ],
               ),
+              // What the salesman answered about stock while reviewing the
+              // order. Not a status — the order is still in review.
+              if (order.availabilityLabel.isNotEmpty) ...[
+                const SizedBox(height: 10),
+                _availabilityNote(),
+              ],
               const SizedBox(height: 12),
               Divider(height: 1, color: AppColors.border),
               const SizedBox(height: 12),
@@ -132,6 +138,43 @@ class OrderCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  /// Amber when stock is unavailable, brand green when a date has been promised.
+  Widget _availabilityNote() {
+    final waiting = order.availability == 'available_on';
+    final color = waiting ? AppColors.primary : AppColors.orange;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withValues(alpha: .35)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            waiting
+                ? Icons.event_available_outlined
+                : Icons.remove_shopping_cart_outlined,
+            size: 15,
+            color: color,
+          ),
+          const SizedBox(width: 7),
+          Expanded(
+            child: Text(
+              order.availabilityLabel,
+              style: TextStyle(
+                fontSize: 11.5,
+                color: color,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

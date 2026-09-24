@@ -14,6 +14,8 @@ class OrderModel {
     this.deliveredAt = '',
     this.hasInvoice = false,
     this.invoiceId = 0,
+    this.availability = '',
+    this.availableOn = '',
   });
 
   /// Returns are accepted this many days after delivery (the server checks too).
@@ -38,6 +40,32 @@ class OrderModel {
 
   /// Id of the invoice raised for this order, 0 when it has none yet.
   final int invoiceId;
+
+  /// The salesman's stock answer while they are still reviewing the order:
+  /// `not_available`, `available_on`, or empty when they haven't answered.
+  /// The order has not moved — this is a note about stock, not a status.
+  final String availability;
+
+  /// Raw timestamp the stock is expected, set only with `available_on`.
+  final String availableOn;
+
+  /// One line for the dealer, e.g. "Stock available on 25 Sep 2026, 10:00 AM"
+  /// or "Stock not available right now". Empty when nothing was marked.
+  String get availabilityLabel {
+    if (availability == 'available_on') {
+      final expected = DateTime.tryParse(availableOn)?.toLocal();
+
+      return expected == null
+          ? 'Stock available soon'
+          : 'Stock available on ${DateFormat('dd MMM yyyy, hh:mm a').format(expected)}';
+    }
+
+    if (availability == 'not_available') {
+      return 'Stock not available right now';
+    }
+
+    return '';
+  }
 
   int get itemCount => items.length;
 
@@ -77,6 +105,8 @@ class OrderModel {
       total: double.tryParse(json['grand_total']?.toString() ?? json['total']?.toString() ?? '') ?? 0,
       createdAt: json['created_at']?.toString() ?? '',
       paymentStatus: json['payment_status']?.toString() ?? '',
+      availability: json['availability']?.toString().trim() ?? '',
+      availableOn: json['available_on']?.toString().trim() ?? '',
       items: items,
       deliveredAt: deliveredDates.isEmpty ? '' : deliveredDates.last,
       hasInvoice: json['invoice'] is Map,
